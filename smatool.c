@@ -17,7 +17,10 @@
 
 /* compile gcc -lbluetooth -lcurl -lmysqlclient -g -o smatool smatool.c */
 
+#define _XOPEN_SOURCE /*for strptime, before the includes */
 
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -42,7 +45,6 @@ typedef u_int16_t u16;
 #define PPPGOODFCS16 0xf0b8 /* Good final FCS value */
 #define ASSERT(x) assert(x)
 #define SCHEMA "2"  /* Current database schema */
-#define _XOPEN_SOURCE /* glibc2 needs this */
 
 
 typedef struct{
@@ -164,7 +166,7 @@ u16 pppfcs16(u16 fcs, void *_cp, int len)
 /*
  * Strip escapes (7D) as they aren't includes in fcs
  */
-strip_escapes(unsigned char *cp, int *len)
+void strip_escapes(unsigned char *cp, int *len)
 {
     int i,j;
 
@@ -180,7 +182,7 @@ strip_escapes(unsigned char *cp, int *len)
 /*
  * Add escapes (7D) as they are required
  */
-add_escapes(unsigned char *cp, int *len)
+void add_escapes(unsigned char *cp, int *len)
 {
     int i,j;
 
@@ -202,7 +204,7 @@ add_escapes(unsigned char *cp, int *len)
 /*
  * Recalculate and update length to correct for escapes
  */
-fix_length_send(unsigned char *cp, int *len)
+void fix_length_send(unsigned char *cp, int *len)
 {
     int	    delta=0;
 
@@ -254,7 +256,7 @@ fix_length_send(unsigned char *cp, int *len)
 /*
  * Recalculate and update length to correct for escapes
  */
-fix_length_received(unsigned char *received, int *len)
+void fix_length_received(unsigned char *received, int *len)
 {
     int	    delta=0;
     int	    sum;
@@ -281,7 +283,7 @@ fix_length_received(unsigned char *received, int *len)
 /*
  * How to use the fcs
  */
-tryfcs16(unsigned char *cp, int len)
+void tryfcs16(unsigned char *cp, int len)
 {
     u16 trialfcs;
     unsigned
@@ -585,11 +587,11 @@ unsigned char *  get_timezone_in_seconds( unsigned char *tzhex )
    time_t curtime;
    struct tm *loctime;
    struct tm *utctime;
-   int day,month,year,hour,minute,second,isdst,datapoint;
+   int day,month,year,hour,minute,isdst;
    char *returntime;
 
    float localOffset;
-   int	 tzsecs, tzsecsword;
+   int	 tzsecs;
 
    returntime = (char *)malloc(6*sizeof(char));
    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
@@ -630,10 +632,10 @@ char *  sunrise( float latitude, float longitude )
    time_t curtime;
    struct tm *loctime;
    struct tm *utctime;
-   int day,month,year,hour,minute,second,datapoint;
+   int day,month,year,hour,minute;
    char *returntime;
 
-   double lnghour,t,M,L,T,RA,Lquadrant,RAquadrant,sinDec,cosDec;
+   double t,M,L,T,RA,Lquadrant,RAquadrant,sinDec,cosDec;
    double cosH, H, UT, localT,lngHour;
    float localOffset,zenith=91;
    double pi=M_PI;
@@ -695,7 +697,7 @@ char *  sunrise( float latitude, float longitude )
    UT = T - lngHour;
    if( UT < 0 ) UT=UT+24;
    if( UT > 24 ) UT=UT-24;
-   loctime->tm_mday;
+
    month = loctime->tm_mon +1;
    year = loctime->tm_year + 1900;
    hour = loctime->tm_hour;
@@ -714,10 +716,10 @@ char * sunset( float latitude, float longitude )
    time_t curtime;
    struct tm *loctime;
    struct tm *utctime;
-   int day,month,year,hour,minute,second,datapoint;
+   int day,month,year,hour,minute;
    char *returntime;
 
-   double lnghour,t,M,L,T,RA,Lquadrant,RAquadrant,sinDec,cosDec;
+   double t,M,L,T,RA,Lquadrant,RAquadrant,sinDec,cosDec;
    double cosH, H, UT, localT,lngHour;
    float localOffset,zenith=91;
    double pi=M_PI;
@@ -796,7 +798,7 @@ int install_mysql_tables( ConfType * conf )
     sprintf(SQLQUERY,"SHOW DATABASES" );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    while (row = mysql_fetch_row(res))  //if there is a result, update the row
+    while ( ( row = mysql_fetch_row(res)) )  //if there is a result, update the row
     {
        if( strcmp( row[0], conf->MySqlDatabase ) == 0 )
        {
@@ -861,10 +863,9 @@ int install_mysql_tables( ConfType * conf )
     return found;
 }
 
-int update_mysql_tables( ConfType * conf )
+void update_mysql_tables( ConfType * conf )
 /*  Do mysql table schema updates */
 {
-    int	        found=0;
     int		schema_value=0;
     MYSQL_ROW 	row;
     char 	SQLQUERY[1000];
@@ -877,7 +878,7 @@ int update_mysql_tables( ConfType * conf )
     sprintf(SQLQUERY,"SELECT data FROM settings WHERE value=\'schema\' " );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    if (row = mysql_fetch_row(res))  //if there is a result, update the row
+    if (( row = mysql_fetch_row(res)))  //if there is a result, update the row
     {
        schema_value=atoi(row[0]);
     }
@@ -905,7 +906,7 @@ int check_schema( ConfType * conf )
     sprintf(SQLQUERY,"SELECT data FROM settings WHERE value=\'schema\' " );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    if (row = mysql_fetch_row(res))  //if there is a result, update the row
+    if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
     {
        if( strcmp( row[0], SCHEMA ) == 0 )
           found=1;
@@ -931,7 +932,7 @@ int todays_almanac( ConfType *conf )
     sprintf(SQLQUERY,"SELECT sunrise FROM Almanac WHERE date=DATE_FORMAT( NOW(), \"%%Y%%m%%d\" ) " );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    if (row = mysql_fetch_row(res))  //if there is a result, update the row
+    if ( (row = mysql_fetch_row(res)) )  //if there is a result, update the row
     {
        found=1;
     }
@@ -941,7 +942,6 @@ int todays_almanac( ConfType *conf )
 
 void update_almanac( ConfType *conf, char * sunrise, char * sunset )
 {
-    MYSQL_ROW 	row;
     char 	SQLQUERY[200];
 
     OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
@@ -958,7 +958,7 @@ int auto_set_dates( ConfType * conf, int * daterange, int mysql, char * datefrom
     MYSQL_ROW 	row;
     char 	SQLQUERY[200];
     time_t  	curtime;
-    int 	day,month,year,hour,minute,second,datapoint;
+    int 	day,month,year,hour,minute,second;
     struct tm 	*loctime;
 
     if( mysql == 1 )
@@ -968,7 +968,7 @@ int auto_set_dates( ConfType * conf, int * daterange, int mysql, char * datefrom
         sprintf(SQLQUERY,"SELECT DATE_FORMAT( DateTime, \"%%Y-%%m-%%d %%H:%%i:%%S\" ) FROM DayData ORDER BY DateTime DESC LIMIT 1" );
         if (debug == 1) printf("%s\n",SQLQUERY);
         DoQuery(SQLQUERY);
-        if (row = mysql_fetch_row(res))  //if there is a result, update the row
+        if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
         {
            strcpy( datefrom, row[0] );
         }
@@ -989,7 +989,7 @@ int auto_set_dates( ConfType * conf, int * daterange, int mysql, char * datefrom
     sprintf( dateto, "%04d-%02d-%02d %02d:%02d:00", year, month, day, hour, minute );
     (*daterange)=1;
     if( verbose == 1 ) printf( "Auto set dates from %s to %s\n", datefrom, dateto );
-    return;
+    return 1;
 }
 
 int is_light( ConfType * conf )
@@ -1004,7 +1004,7 @@ int is_light( ConfType * conf )
     sprintf(SQLQUERY,"SELECT if(sunrise < NOW(),1,0) FROM Almanac WHERE date= DATE_FORMAT( NOW(), \"%%Y-%%m-%%d\" ) " );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    if (row = mysql_fetch_row(res))  //if there is a result, update the row
+    if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
     {
        if( atoi( (char *)row[0] ) == 0 ) light=0;
     }
@@ -1012,7 +1012,7 @@ int is_light( ConfType * conf )
        sprintf(SQLQUERY,"SELECT if( dd.datetime > al.sunset,1,0) FROM DayData as dd left join Almanac as al on al.date=DATE(dd.datetime) and al.date=DATE(NOW()) WHERE 1 ORDER BY dd.datetime DESC LIMIT 1" );
        if (debug == 1) printf("%s\n",SQLQUERY);
        DoQuery(SQLQUERY);
-       if (row = mysql_fetch_row(res))  //if there is a result, update the row
+       if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
        {
           if( atoi( (char *)row[0] ) == 1 ) light=0;
        }
@@ -1023,7 +1023,7 @@ int is_light( ConfType * conf )
 }
 
 //Set a value depending on inverter
-int  SetInverterType( ConfType * conf )  
+void  SetInverterType( ConfType * conf )  
 {
     if( strcmp(conf->Inverter, "3000TL") == 0 ) {
         conf->InverterCode[0] = 0x12;
@@ -1098,7 +1098,6 @@ InitReturnKeys( ConfType * conf, ReturnType * returnkeylist, int * num_return_ke
 {
    FILE		*fp;
    char		line[400];
-   char		buffer[80];
    ReturnType   tmp;
    int		i, j, reading, data_follows;
 
@@ -1199,7 +1198,7 @@ time_t ConvertStreamtoTime( unsigned char * stream, int length, time_t * value )
 }
 
 // Set switches to save lots of strcmps
-int  SetSwitches( ConfType *conf, char * datefrom, char * dateto, int *location, int *mysql, int *post, int *file, int *daterange, int *test )  
+void  SetSwitches( ConfType *conf, char * datefrom, char * dateto, int *location, int *mysql, int *post, int *file, int *daterange, int *test )  
 {
     //Check if all location variables are set
     if(( conf->latitude_f <= 180 )&&( conf->longitude_f <= 180 ))
@@ -1283,7 +1282,7 @@ ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, u
 }
 
 /* Init Config to default values */
-int InitConfig( ConfType *conf, char * datefrom, char * dateto )
+void InitConfig( ConfType *conf, char * datefrom, char * dateto )
 {
     strcpy( conf->Config,"./smatool.conf");
     strcpy( conf->Inverter, "" );  
@@ -1374,7 +1373,7 @@ int GetConfig( ConfType *conf )
 }
 
 /* Print a help message */
-int PrintHelp()
+void PrintHelp()
 {
     printf( "Usage: smatool [OPTION]\n" );
     printf( "  -v,  --verbose                           Give more verbose output\n" );
@@ -1583,7 +1582,7 @@ int main(int argc, char **argv)
 	FILE *fp;
         unsigned char * last_sent;
         ConfType conf;
-        ReturnType *returnkeylist;
+        ReturnType *returnkeylist = NULL;
         int num_return_keys=0;
 	struct sockaddr_rc addr = { 0 };
 	unsigned char received[1024];
@@ -1599,7 +1598,7 @@ int main(int argc, char **argv)
 	int s,i,j,status,mysql=0,post=0,repost=0,test=0,file=0,daterange=0;
         int install=0, update=0, already_read=0;
         int location=0, error=0;
-	int ret,found,crc_at_end,last, finished=0;
+	int ret,found,crc_at_end=0, finished=0;
         int togo=0;
         int  initstarted=0,setupstarted=0,rangedatastarted=0;
         long returnpos;
@@ -1608,7 +1607,6 @@ int main(int argc, char **argv)
 	char datefrom[100];
 	char dateto[100];
         int  pass_i;
-	char config[100];
 	char line[400];
 	unsigned char address[6] = { 0 };
 	unsigned char address2[6] = { 0 };
@@ -1629,13 +1627,8 @@ int main(int argc, char **argv)
 	int day,month,year,hour,minute,second,datapoint;
 	char tt[10] = {48,48,48,48,48,48,48,48,48,48}; 
 	char ti[3];	
-	char pac[2];
-	char tot[2];
 	char chan[1];
 	float currentpower_total;
-	float currentpower_string1;
-	float currentpower_string2;
-	float currentpower_string3;
         int   rr;
 	int linenum = 0;
 	float dtotal;
@@ -1644,7 +1637,6 @@ int main(int argc, char **argv)
 	float strength;
 	MYSQL_ROW row, row1;
 	char SQLQUERY[200];
-	char rowres[10];
    struct archdata_type
    {
       time_t date;
@@ -1719,7 +1711,10 @@ int main(int argc, char **argv)
 	  fp=fopen("/etc/sma.in","r");
 	// allocate a socket
    s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-
+   if( s < 0 ) {
+      printf("\nError creating socket. Errno=%i. %s\n", errno, strerror( errno ) );
+     
+  }
    // set the connection parameters (who to connect to)
    addr.rc_family = AF_BLUETOOTH;
    addr.rc_channel = (uint8_t) 1;
@@ -1730,7 +1725,7 @@ int main(int argc, char **argv)
    for( i=1; i<5; i++ ){
       status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 	if (status <0){
-		printf("Error connecting to %s\n",conf.BTAddress);
+		printf("Error connecting to %s. Errno=%i. %s\n",conf.BTAddress, errno, strerror( errno ) );
 	}
         else
            break;
@@ -1949,7 +1944,7 @@ int main(int argc, char **argv)
                                     if( fromtime == -1 ) {
                                     // Error we need to do something about it
                                         printf( "%03x",(int)fromtime ); getchar();
-                                        printf( "\n%03x", fromtime ); getchar();
+                                        printf( "\n%03lx", fromtime ); getchar();
                                         fromtime=0;
                                         printf( "bad from" ); getchar();
                                     }
@@ -1983,7 +1978,7 @@ int main(int argc, char **argv)
                                     if( totime == -1 ) {
                                     // Error we need to do something about it
                                         printf( "%03x",(int)totime ); getchar();
-                                        printf( "\n%03x", totime ); getchar();
+                                        printf( "\n%03lx", totime ); getchar();
                                         totime=0;
                                         printf( "bad to" ); getchar();
                                     }
@@ -2009,7 +2004,7 @@ int main(int argc, char **argv)
                                     if( fromtime == -1 ) {
                                     // Error we need to do something about it
                                         printf( "%03x",(int)fromtime ); getchar();
-                                        printf( "\n%03x", fromtime ); getchar();
+                                        printf( "\n%03lx", fromtime ); getchar();
                                         fromtime=0;
                                         printf( "bad from" ); getchar();
                                     }
@@ -2038,7 +2033,7 @@ int main(int argc, char **argv)
                                     if( totime == -1 ) {
                                     // Error we need to do something about it
                                         printf( "%03x",(int)totime ); getchar();
-                                        printf( "\n%03x", totime ); getchar();
+                                        printf( "\n%03lx", totime ); getchar();
                                         fromtime=0;
                                         printf( "bad from" ); getchar();
                                     }
@@ -2234,7 +2229,7 @@ int main(int argc, char **argv)
                                     /* Allow delay for inverter to be slow */
                                     if( reporttime > idate ) {
                                        if( debug == 1 )
-                                           printf( "delay=%d\n", reporttime-idate );
+                                           printf( "delay=%ld\n", reporttime-idate );
                                        sleep( reporttime - idate );
                                     }
                                 }
@@ -2343,7 +2338,7 @@ int main(int argc, char **argv)
                           
 				strength  = (received[22] * 100.0)/0xff;
 	                        if (verbose == 1) {
-                                    printf("bluetooth signal = %.0f%\n",strength);
+                                    printf("bluetooth signal = %.0f%%\n",strength);
                                 }
                                 break;		
 				case 22: // extract time strings $INVCODE
@@ -2383,7 +2378,7 @@ int main(int argc, char **argv)
                                    }
                                    if( return_key >= 0 ) {
                                        if( i==0 )
-				           printf("%d-%02d-%02d %s\n", year, month, day, hour, minute, second, (data+i+8) );
+				           printf("%d-%02d-%02d %02d:%02d:%02d %s\n", year, month, day, hour, minute, second, (data+i+8) );
 				       printf("%d-%02d-%02d %02d:%02d:%02d %-20s = %.0f %-20s\n", year, month, day, hour, minute, second, returnkeylist[return_key].description, currentpower_total/returnkeylist[return_key].divisor, returnkeylist[return_key].units );
                                    }
                                    else
@@ -2444,10 +2439,8 @@ int main(int argc, char **argv)
     datapoint = (int)(((hour * 60) + minute)) / 5; 
 
     if ((post ==1)&&(mysql==1)&&(error==0)){
-        char *stopstring;
         char batch_string[400];
         int	batch_count = 0;
-        float dtotal, starttotal;
         
         /* Connect to database */
         OpenMySqlDatabase( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
@@ -2515,7 +2508,7 @@ int main(int argc, char **argv)
         batch_count=0;
         if( mysql_num_rows(res) == 1 )
         {
-            if (row = mysql_fetch_row(res))  //Need to update these
+            if ((row = mysql_fetch_row(res)))  //Need to update these
             {
 	        sprintf(compurl,"%s?d=%s&t=%s&v1=%s&v2=%s&key=%s&sid=%s",conf.PVOutputURL,row[0],row[1],row[2],row[3],conf.PVOutputKey,conf.PVOutputSid);
 	        if (debug == 1) printf("url = %s\n",compurl); 
@@ -2540,7 +2533,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            while (row = mysql_fetch_row(res))  //Need to update these
+            while ((row = mysql_fetch_row(res)))  //Need to update these
             {
                 if( batch_count > 0 )
                     sprintf( batch_string,"%s;%s,%s,%s,%s", batch_string, row[0], row[1], row[2], row[3] ); 
@@ -2563,7 +2556,7 @@ int main(int argc, char **argv)
                            sprintf(SQLQUERY,"SELECT DATE_FORMAT(dd1.DateTime,\'%%Y%%m%%d\'), DATE_FORMAT(dd1.DateTime,\'%%H:%%i\'), ROUND((dd1.ETotalToday-dd2.EtotalToday)*1000), dd1.CurrentPower, dd1.DateTime FROM DayData as dd1 join DayData as dd2 on dd2.DateTime=DATE_FORMAT(dd1.DateTime,\'%%Y%%m%%d0000000\') WHERE dd1.DateTime>=Date_Sub(CURDATE(),INTERVAL 1 DAY) and dd1.PVOutput IS NULL and dd1.CurrentPower>0 ORDER BY dd1.DateTime ASC limit %d", batch_count );
                            if (debug == 1) printf("%s\n",SQLQUERY);
                            DoQuery1(SQLQUERY);
-                           while (row1 = mysql_fetch_row(res1))  //Need to update these
+                           while ((row1 = mysql_fetch_row(res1)))  //Need to update these
                            {
                                sprintf(SQLQUERY,"UPDATE DayData set PVOutput=NOW() WHERE DateTime=\"%s\"  ", row1[4] );
                                if (debug == 1) printf("%s\n",SQLQUERY);
@@ -2594,7 +2587,7 @@ int main(int argc, char **argv)
                        sprintf(SQLQUERY,"SELECT DATE_FORMAT(dd1.DateTime,\'%%Y%%m%%d\'), DATE_FORMAT(dd1.DateTime,\'%%H:%%i\'), ROUND((dd1.ETotalToday-dd2.EtotalToday)*1000), dd1.CurrentPower, dd1.DateTime FROM DayData as dd1 join DayData as dd2 on dd2.DateTime=DATE_FORMAT(dd1.DateTime,\'%%Y%%m%%d0000000\') WHERE dd1.DateTime>=Date_Sub(CURDATE(),INTERVAL 1 DAY) and dd1.PVOutput IS NULL and dd1.CurrentPower>0 ORDER BY dd1.DateTime ASC limit %d", batch_count );
                        if (debug == 1) printf("%s\n",SQLQUERY);
                        DoQuery1(SQLQUERY);
-                       while (row1 = mysql_fetch_row(res1))  //Need to update these
+                       while ((row1 = mysql_fetch_row(res1)))  //Need to update these
                        {
                            sprintf(SQLQUERY,"UPDATE DayData set PVOutput=NOW() WHERE DateTime=\"%s\"  ", row1[4] );
                            if (debug == 1) printf("%s\n",SQLQUERY);
@@ -2618,7 +2611,6 @@ int main(int argc, char **argv)
 }
 
 if ((repost ==1)&&(error==0)){
-    char *stopstring;
     FILE* fp;
     char buf[1024], buf1[400];
     int	 update_data;
@@ -2633,7 +2625,7 @@ if ((repost ==1)&&(error==0)){
     sprintf(SQLQUERY,"SELECT DATE_FORMAT( dt1.DateTime, \"%%Y%%m%%d\" ), round((dt1.ETotalToday*1000-dt2.ETotalToday*1000),0) FROM DayData as dt1 join DayData as dt2 on dt2.DateTime = DATE_SUB( dt1.DateTime, interval 1 day ) WHERE dt1.DateTime LIKE \"%%-%%-%% 23:55:00\" ORDER BY dt1.DateTime DESC" );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
-    while (row = mysql_fetch_row(res))  //if there is a result, update the row
+    while ((row = mysql_fetch_row(res)))  //if there is a result, update the row
     {
         fp=fopen( "/tmp/curl_output", "w+" );
         update_data = 0;
