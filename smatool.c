@@ -870,7 +870,7 @@ void update_mysql_tables( ConfType * conf )
     MYSQL_ROW 	row;
     char 	SQLQUERY[1000];
 
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, "mysql");
+    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase );
     sprintf( SQLQUERY,"USE  %s", conf->MySqlDatabase );
     if (debug == 1) printf("%s\n",SQLQUERY);
     DoQuery(SQLQUERY);
