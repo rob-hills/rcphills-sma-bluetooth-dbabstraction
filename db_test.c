@@ -1,3 +1,22 @@
+/* database interface test program for smatool
+
+   Copyright Tony Brown 2011 
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+#define _XOPEN_SOURCE
+
 #include "db_interface.h"
 #include <stdio.h>
 #include <time.h>
@@ -8,16 +27,22 @@
 
 int main( int argc, char** argv )
 {
-  db_init(NULL,NULL,NULL,"./test.db");
+  if( argc < 5 )
+  {
+    puts("db_test server user password database\nFor sqlite3, database is filename of data file. Other params ignored\n");
+    return 1;
+  }
+  
+  db_init(argv[1],argv[2],argv[3],argv[4]);
   int result = db_install_tables();
   printf("db_install_tables: %i\n", result );
  
-  assert( result == 1 );
+  //assert( result == 1 );
   
   result = db_get_schema();
   printf("db_get_schema: %i\n", result );
 
-  assert( result == 1 );
+  assert( result == 2 );
   
   struct tm date;
   time_t t;
@@ -89,6 +114,35 @@ int main( int argc, char** argv )
   assert( date.tm_hour == last_date.tm_hour );
   assert( date.tm_min == last_date.tm_min );
   assert( date.tm_sec == last_date.tm_sec );
+  
+  date.tm_hour = 0;
+  row_handle *row = db_get_unposted_data( &date );
+  assert( row != NULL );
+  
+  struct tm from_date, to_date;
+  
+  puts( db_row_string_data( row, 0 ) ) ;
+  strptime(  db_row_string_data( row, 0 ) ,"%Y-%m-%d %H:%M:%S", &from_date);
+  
+  puts( db_row_string_data( row, 1 ) ) ;
+  assert( db_row_next( row ) == 1 );
+  puts( db_row_string_data( row, 0 ) ) ;
+
+  strptime(  db_row_string_data( row, 0 ) ,"%Y-%m-%d %H:%M:%S", &to_date);
+
+  puts( db_row_string_data( row, 1 ) ) ;
+  assert( db_row_next( row ) == 0 );
+  db_row_handle_free( row );
+  
+  
+  result = db_set_data_posted( &from_date, &to_date );
+  assert( result == 1 );
+  
+  row = db_get_unposted_data( &date );
+  assert( row == NULL );
+  if( row != NULL ) db_row_handle_free( row );
+  
+  
   
   db_close();
 

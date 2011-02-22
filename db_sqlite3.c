@@ -19,6 +19,7 @@
 #include <sqlite3.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 char sqlite_dbfile[255];
@@ -87,7 +88,7 @@ int db_install_tables( void )
     Inverter varchar(10) NOT NULL, \
     Serial varchar(40) NOT NULL, \
     CurrentPower int NULL, \
-    ETotalToday float NULL, \
+    ETotalToday decimal(10,3) NULL, \
     PVOutput datetime NULL, \
     Changetime datetime NULL, \
     PRIMARY KEY( DateTime, Inverter, Serial) );";
@@ -110,7 +111,7 @@ int db_install_tables( void )
     return -1;
   }
 
-  const char *set_schema= "INSERT INTO Settings(Value,Data) VALUES('Schema',1);";
+  const char *set_schema= "INSERT INTO Settings(Value,Data) VALUES('Schema',2);";
   result = sqlite3_exec( dbHandle, set_schema, NULL, NULL, &error );
   if( error )
   {
@@ -326,23 +327,46 @@ float db_get_start_of_day_energy_value( struct tm *day )
   return start_day_e;  
 }
 
-/*
- * Return 1 if the interval specified by interval_datetime has been uploaded to PVOutput
- */
-int db_is_interval_uploaded( struct tm interval_datetime );
-/*
-    sprintf(SQLQUERY,"SELECT PVOutput FROM DayData WHERE DateTime=\"%i%02i%02i%02i%02i%02i\"  and PVOutput IS NOT NULL", year, month, day, hour, minute, second );
-*/
 
 /*
- * Set the upload date/time to NOW on the interval identified by interval_datetime
+ * Set the upload date/time to NOW on the intervals between from_datetime and to_datetime inclusive
  * Return 1 for success, 0 for failure
  */
-int db_set_interval_upload_now( struct tm interval_datetime );
-/*
-    sprintf(SQLQUERY,"UPDATE DayData  set PVOutput=NOW() WHERE DateTime=\"%i%02i%02i%02i%02i%02i\"  ", year, month, day, hour, minute, second );
+int db_set_data_posted(struct tm *from_datetime, struct tm *to_datetime )
+{
+  int retval = 0;
+  if( sqlite_open() != SQLITE_OK )
+  {
+    fprintf(stderr, "db_set_data_posted error\n" );
+    return 0;
+  }
+  
+  sqlite3_stmt *pStmt = NULL;
+  int result = sqlite3_prepare_v2( dbHandle, "UPDATE DayData SET PVOutput=datetime('now','localtime') WHERE DateTime >= ? AND DateTime <= ? ;", -1, &pStmt, NULL );
+  if( NULL == pStmt )
+  {
+    fprintf(stderr, "db_set_data_posted error: %s\n", sqlite3_errmsg( dbHandle) );
+    return 0;
+  }
+  char charfromdate[25];
+  char chartodate[25];
+  strftime(charfromdate,25,"%Y-%m-%d %H:%M:%S", from_datetime);
+  strftime(chartodate,25,"%Y-%m-%d %H:%M:%S", to_datetime);
+  sqlite3_bind_text( pStmt, 1, charfromdate, -1, SQLITE_STATIC );
+  sqlite3_bind_text( pStmt, 2, chartodate, -1, SQLITE_STATIC );
 
-*/
+  result = sqlite3_step( pStmt );
+  if( result == SQLITE_DONE )
+  {
+    retval = 1;
+  }
+   
+  sqlite3_finalize( pStmt );
+  return retval;  
+  
+}
+
+
 
 /*
  * Return an opaque row handle pointer that can be iterated over to get the values for the specified day
@@ -352,17 +376,62 @@ int db_set_interval_upload_now( struct tm interval_datetime );
  * Call db_row_get_column_value() and db_row_next() to get values and iterate, respectively.
  * Call db_row_handle_free() when done.
  */
-row_handle * db_get_day_data( struct tm day );
+row_handle* db_get_unposted_data( struct tm *from_datetime )
+{
+  if( sqlite_open() != SQLITE_OK )
+  {
+    fprintf(stderr, "db_get_unposted_data error\n" );
+    return NULL;
+  }
+  
+  sqlite3_stmt *pStmt = NULL;
+  int result = sqlite3_prepare_v2( dbHandle, "SELECT Datetime, ETotalToday FROM DayData WHERE DateTime >= ? AND PVOutput IS NULL ORDER BY Datetime ASC ;", -1, &pStmt, NULL );
+  if( NULL == pStmt )
+  {
+    fprintf(stderr, "db_get_unposted_data error: %s\n", sqlite3_errmsg( dbHandle) );
+    return NULL;
+  }
+  char charfromdate[25];
+  strftime(charfromdate,25,"%Y-%m-%d %H:%M:%S", from_datetime);
+  sqlite3_bind_text( pStmt, 1, charfromdate, -1, SQLITE_STATIC );
+  
+  result = sqlite3_step( pStmt );
 
-void db_row_get_column_value( row_handle *row, int column_id, char **value );
+  if( result == SQLITE_ROW )
+  {
+    return (row_handle*) pStmt;
+  }
+  sqlite3_finalize( pStmt );
+  return NULL;
+}
 
+char* db_row_string_data( row_handle *row, int column_id )
+{
+  return (char*) sqlite3_column_text( (sqlite3_stmt*)row, column_id);
+}
 /*
  * move to next row.
- * returns 1 on success, 0 on failure (no more rows)
+ * returns 1 on success, 0 on no more rows
+ * returns a negative number representing an error code on failure.
  */
-int db_row_next( row_handle *row );
+int db_row_next( row_handle *row )
+{
+  int result =  sqlite3_step( (sqlite3_stmt*)row );
+  if( result == SQLITE_ROW ) 
+  {
+    return 1;
+  }
+  else if( result == SQLITE_DONE )
+  {
+    return 0;
+  }
+  return -result;
+}
 
 /*
  * frees the row_handle
  */
-void db_row_handle_free( row_handle *row );
+void db_row_handle_free( row_handle *row )
+{
+  sqlite3_finalize( (sqlite3_stmt*)row );
+}
