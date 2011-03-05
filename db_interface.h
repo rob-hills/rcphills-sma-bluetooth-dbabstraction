@@ -73,13 +73,13 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date);
   Return 1 on success, 0 on failure
   TODO: current_power and total_energy should be scaled integer values (decimal(10,3) type )
 */
-int db_set_interval_value( struct tm *date, char *inverter, char *serial, float current_power, float total_energy );
+int db_set_interval_value( struct tm *date, char *inverter, long unsigned int serial, long current_power, long total_energy );
 
 /*
  * Get the start of day ETotalEnergy value for the specified day
  * Returns 0.0f if there is no data.
  */
-float db_get_start_of_day_energy_value( struct tm *day );
+long db_get_start_of_day_energy_value( struct tm *day );
 
 /*
  * Set the upload date/time to NOW on the intervals between from_datetime and to_datetime inclusive
@@ -104,7 +104,8 @@ row_handle* db_get_unposted_data( struct tm *from_datetime );
  * TODO: do we need other data types? ( struct tm, int ? )
  */
 char* db_row_string_data( row_handle *row, int column_id );
-
+struct tm db_row_datetime_data( row_handle *row, int column_id );
+long db_row_int_data( row_handle *row, int column_id );
 /*
  * move to next row.
  * returns 1 on success, 0 on failure (no more rows)

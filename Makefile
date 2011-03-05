@@ -1,7 +1,7 @@
 RM = rm
 CC = gcc
 CFLAGS = -g -Wall
-LIBS = -lbluetooth -lcurl 
+LIBS = -lbluetooth -lcurl -lm
 
 MAIN = smatool
 MAIN_OBJ = smatool.o
