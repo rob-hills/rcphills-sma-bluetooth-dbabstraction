@@ -146,7 +146,7 @@ int db_get_schema(){
   {
     MYSQL_RES *dbResult = mysql_store_result( dbHandle );
     MYSQL_ROW row = mysql_fetch_row( dbResult );
-    if( row != NULL ) 
+    if( row != NULL && row[0] != NULL ) 
     {
 	schema = atoi(row[0]);
     }
@@ -263,7 +263,7 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
 
   MYSQL_RES *dbResult = mysql_store_result( dbHandle );
   MYSQL_ROW row = mysql_fetch_row( dbResult );
-  if( row != NULL )
+  if( row != NULL && row[0] != NULL )
   {
     strptime( row[0], "%Y-%m-%d %H:%M:%S", &last_time );
   }
@@ -275,19 +275,19 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
 /* insert or update a single row in the database 
   Return 1 on success, 0 on failure
 */
-int db_set_interval_value( struct tm *date, char *inverter, char *serial, float current_power, float total_energy )
+int db_set_interval_value( struct tm *date, char *inverter, long unsigned int serial, long current_power, long total_energy )
 {
   if( mysql_open() != MYSQL_OK )
   {
     fprintf(stderr, "db_set_interval_value error\n" );
     return 0;
   }
-  const char *stmtText= "REPLACE INTO DayData(DateTime, Inverter, Serial, CurrentPower, ETotalToday, Changetime) VALUES( '%s', '%s', '%s', %f, %f, NOW() )";
+  const char *stmtText= "REPLACE INTO DayData(DateTime, Inverter, Serial, CurrentPower, ETotalToday, Changetime) VALUES( '%s', '%s', '%lu', %ld, %d.%03d, NOW() )";
   char query[200];
   char interval_datetime[25];
   strftime(interval_datetime,25,"%Y-%m-%d %H:%M:%S", date);
 
-  sprintf( query, stmtText, interval_datetime, inverter, serial, current_power, total_energy );
+  sprintf( query, stmtText, interval_datetime, inverter, serial, current_power , total_energy / 1000, total_energy % 1000 );
 #ifdef DEBUG
   puts(query);
 #endif
@@ -307,15 +307,15 @@ int db_set_interval_value( struct tm *date, char *inverter, char *serial, float 
  * Get the start of day ETotalEnergy value for the specified day
  * Returns 0.0f if there is no data.
  */
-float db_get_start_of_day_energy_value( struct tm *day )
+long db_get_start_of_day_energy_value( struct tm *day )
 {
   if( mysql_open() != MYSQL_OK )
   {
     fprintf(stderr, "db_get_start_of_day_energy_value error\n" );
     return 0;
   }
-  float start_day_e = 0.0f;
-  const char *stmtText = "SELECT ETotalToday FROM DayData WHERE DateTime >= '%s' AND DateTime < ADDDATE('%s',1) ORDER BY DateTime ASC";
+  long start_day_e = 0;
+  const char *stmtText = "SELECT ETotalToday*1000 FROM DayData WHERE DateTime >= '%s' AND DateTime < ADDDATE('%s',1) ORDER BY DateTime ASC";
   char query[200];
   char date[25];
   strftime(date,25,"%Y-%m-%d", day);
@@ -334,9 +334,9 @@ float db_get_start_of_day_energy_value( struct tm *day )
   
   MYSQL_RES *dbResult = mysql_store_result( dbHandle );
   MYSQL_ROW row = mysql_fetch_row( dbResult );
-  if( row != NULL )
+  if( row != NULL && row[0] != NULL)
   {
-    start_day_e = atof( row[0]  );
+    start_day_e = atol( row[0]  );
   }
   mysql_free_result( dbResult );
   
@@ -434,6 +434,15 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
 char* db_row_string_data( row_handle *row, int column_id )
 {
   return ((struct mysql_row_handle*) row)->row[column_id];
+}
+
+struct tm db_row_datetime_data( row_handle *row, int column_id )
+{
+  char *stringdate;
+  stringdate = db_row_string_data( row, column_id );
+  struct tm date;
+  strptime( stringdate, "%Y-%m-%d %H:%M:%S", &date );
+  return date;
 }
 /*
  * move to next row.

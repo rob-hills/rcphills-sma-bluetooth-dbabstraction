@@ -15,6 +15,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+#define _XOPEN_SOURCE
+
 #include "db_interface.h"
 #include <sqlite3.h>
 #include <stdio.h>
@@ -260,7 +262,7 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
 /* insert or update a single row in the database 
   Return 1 on success, 0 on failure
 */
-int db_set_interval_value( struct tm *date, char *inverter, char *serial, float current_power, float total_energy )
+int db_set_interval_value( struct tm *date, char *inverter, long unsigned int serial, long current_power, long total_energy )
 {
   if( sqlite_open() != SQLITE_OK )
   {
@@ -269,7 +271,7 @@ int db_set_interval_value( struct tm *date, char *inverter, char *serial, float 
   }
   
   sqlite3_stmt *pStmt = NULL;
-  int result = sqlite3_prepare_v2( dbHandle, "REPLACE INTO DayData(DateTime, Inverter, Serial, CurrentPower, ETotalToday, Changetime) VALUES( ?, ?, ?, ?, ?, datetime('now','localtime') );", -1, &pStmt, NULL );
+  int result = sqlite3_prepare_v2( dbHandle, "REPLACE INTO DayData(DateTime, Inverter, Serial, CurrentPower, ETotalToday, Changetime) VALUES( ?, ?, ?, ?, ? /1000.0, datetime('now','localtime') );", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
     fprintf(stderr, "db_set_interval_value error: %s\n", sqlite3_errmsg( dbHandle) );
@@ -279,9 +281,9 @@ int db_set_interval_value( struct tm *date, char *inverter, char *serial, float 
   strftime(interval_datetime,25,"%Y-%m-%d %H:%M:%S", date);
   sqlite3_bind_text( pStmt, 1, interval_datetime, -1, SQLITE_STATIC );
   sqlite3_bind_text( pStmt, 2, inverter , -1, SQLITE_STATIC);
-  sqlite3_bind_text( pStmt, 3, serial  , -1, SQLITE_STATIC);
-  sqlite3_bind_double( pStmt, 4, current_power );
-  sqlite3_bind_double( pStmt, 5, total_energy );
+  sqlite3_bind_int( pStmt, 3, serial);
+  sqlite3_bind_int( pStmt, 4, current_power );
+  sqlite3_bind_int( pStmt, 5, total_energy );
   result = sqlite3_step( pStmt );
   if( result == SQLITE_DONE )
   {
@@ -300,28 +302,33 @@ int db_set_interval_value( struct tm *date, char *inverter, char *serial, float 
  * Get the start of day ETotalEnergy value for the specified day
  * Returns 0.0f if there is no data.
  */
-float db_get_start_of_day_energy_value( struct tm *day )
+long db_get_start_of_day_energy_value( struct tm *day )
 {
   if( sqlite_open() != SQLITE_OK )
   {
     fprintf(stderr, "db_get_start_of_day_energy_value error\n" );
     return 0;
   }
-  float start_day_e = 0.0f;
+  long start_day_e = 0;
   
   sqlite3_stmt *pStmt = NULL;
-  int result = sqlite3_prepare_v2( dbHandle, "SELECT ETotalToday FROM DayData WHERE DateTime >= date(?,'unixepoch') AND DateTime < date(?,'unixepoch','1 day') ORDER BY DateTime ASC;", -1, &pStmt, NULL );
+  int result = sqlite3_prepare_v2( dbHandle, "SELECT ETotalToday*1000 FROM DayData WHERE DateTime >= ? AND DateTime < date(?,'1 day') ORDER BY DateTime ASC;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
     fprintf(stderr, "db_get_start_of_day_energy_value error: %s\n", sqlite3_errmsg( dbHandle) );
     return 0;
   }
   
-  sqlite3_bind_int( pStmt, 1, mktime( day ) );
+  char charfromdate[25];
+  strftime(charfromdate,25,"%Y-%m-%d", day);
+//  printf("\ndb_get_start_of_day_energy_value:%s\n",charfromdate );
+  sqlite3_bind_text( pStmt, 1, charfromdate, -1, SQLITE_STATIC );
+  sqlite3_bind_text( pStmt, 2, charfromdate, -1, SQLITE_STATIC );
+  //sqlite3_bind_int( pStmt, 1, mktime( day ) );
   result = sqlite3_step( pStmt );
   if( result == SQLITE_ROW )
   {
-    start_day_e = (float)sqlite3_column_double( pStmt, 0 );
+    start_day_e = sqlite3_column_int( pStmt, 0 );
   }
   sqlite3_finalize( pStmt );
   return start_day_e;  
@@ -385,7 +392,7 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
   }
   
   sqlite3_stmt *pStmt = NULL;
-  int result = sqlite3_prepare_v2( dbHandle, "SELECT Datetime, ETotalToday FROM DayData WHERE DateTime >= ? AND PVOutput IS NULL ORDER BY Datetime ASC ;", -1, &pStmt, NULL );
+  int result = sqlite3_prepare_v2( dbHandle, "SELECT Datetime, strftime('%Y%m%d',Datetime),strftime('%H:%M',Datetime), ETotalToday*1000, CurrentPower FROM DayData WHERE DateTime >= ? AND PVOutput IS NULL AND CurrentPower > 0 ORDER BY Datetime ASC ;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
     fprintf(stderr, "db_get_unposted_data error: %s\n", sqlite3_errmsg( dbHandle) );
@@ -408,6 +415,20 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
 char* db_row_string_data( row_handle *row, int column_id )
 {
   return (char*) sqlite3_column_text( (sqlite3_stmt*)row, column_id);
+}
+
+struct tm db_row_datetime_data( row_handle *row, int column_id )
+{
+  char *stringdate;
+  stringdate = db_row_string_data( row, column_id );
+// printf("\nstring date: %s\n",stringdate );
+  struct tm date;
+  strptime( stringdate, "%Y-%m-%d %H:%M:%S", &date );
+  return date;
+}
+long db_row_int_data( row_handle *row, int column_id )
+{
+  return sqlite3_column_int( (sqlite3_stmt*)row, column_id);
 }
 /*
  * move to next row.
