@@ -237,7 +237,7 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
   }
   
   sqlite3_stmt *pStmt = NULL;
-  int result = sqlite3_prepare_v2( dbHandle, "SELECT strftime('%s',MAX(DateTime)) FROM DayData WHERE DateTime >= ? AND DateTime < date(?,'1 day') ;", -1, &pStmt, NULL );
+  int result = sqlite3_prepare_v2( dbHandle, "SELECT MAX(DateTime) FROM DayData WHERE DateTime < date(?,'1 day') ;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
     fprintf(stderr, "db_get_last_recorded_interval_datetime error: %s\n", sqlite3_errmsg( dbHandle) );
@@ -246,13 +246,20 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
   char chardate[25];
   strftime(chardate,25,"%Y-%m-%d", date);
   sqlite3_bind_text( pStmt, 1, chardate, -1, SQLITE_STATIC );
-  sqlite3_bind_text( pStmt, 2, chardate, -1, SQLITE_STATIC );
+ // sqlite3_bind_text( pStmt, 2, chardate, -1, SQLITE_STATIC );
 
   result = sqlite3_step( pStmt );
   if( result == SQLITE_ROW )
   {
-    time_t t = sqlite3_column_int( pStmt, 0 );
-    last_time = *(gmtime( &t ));
+    char *val = (char*) sqlite3_column_text(pStmt, 0);
+    if( val == NULL )
+    {
+      last_time = *date;
+    }
+    else
+    {
+      strptime(val , "%Y-%m-%d %H:%M:%S", &last_time );
+    }
   }
    
   sqlite3_finalize( pStmt );
@@ -321,10 +328,9 @@ long db_get_start_of_day_energy_value( struct tm *day )
   
   char charfromdate[25];
   strftime(charfromdate,25,"%Y-%m-%d", day);
-//  printf("\ndb_get_start_of_day_energy_value:%s\n",charfromdate );
   sqlite3_bind_text( pStmt, 1, charfromdate, -1, SQLITE_STATIC );
   sqlite3_bind_text( pStmt, 2, charfromdate, -1, SQLITE_STATIC );
-  //sqlite3_bind_int( pStmt, 1, mktime( day ) );
+
   result = sqlite3_step( pStmt );
   if( result == SQLITE_ROW )
   {
