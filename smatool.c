@@ -1014,11 +1014,15 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
 }
 
 int is_light( )
-/*  Check if all data done and past sunset or before sunrise */
+/*  Check if all data done and past sunset or before sunrise 
+ Returns true if:
+ * time is between sunrise and sunset
+ */
 {
   char sunrise[25];
   char sunset[25];
   char timestring[25];
+  char sunset_today[25];
   time_t timenow = time(NULL);
   struct tm now = *(localtime( &timenow ) );
   if(! db_fetch_almanac( &now,  sunrise,  sunset ) )
@@ -1026,13 +1030,19 @@ int is_light( )
     return 1; //can't tell - no sunrise/set in db
   }
   strftime(timestring,25,"%H:%M", &now);
-  if( strcmp( timestring, sunrise ) < 0 ) return 0; //now is before sunrise
-  
+  if( verbose == 1 ) printf("now: %s\n", timestring  );
+  if( strcmp( timestring, sunrise ) >= 0 && strcmp( timestring, sunset ) <= 0) return 1; //now is between sunrise and sunset
+  /*
   struct tm last = db_get_last_recorded_interval_datetime( &now );
-  strftime(timestring,25,"%H:%M", &last);
-  if( strcmp( timestring, sunset ) > 0 ) return 0; //last is after sunset. we're done
+  strftime(timestring,25,"%Y-%m-%d %H:%M", &last);
   
-  return 1;
+  strftime(sunset_today,25,"%Y-%m-%d ", &now);
+  strcat(sunset_today, sunset );
+  
+  if( verbose == 1 ) printf("last: %s, sunset_today: %s\n", timestring, sunset_today  );
+  if( strcmp( timestring, sunset ) > 0 ) return 0; //last is after sunset. we're done
+  */
+  return 0;
 /*  strftime( nowstring, 25, "
   int	        light=1;
     MYSQL_ROW 	row;
@@ -1832,7 +1842,13 @@ int main(int argc, char **argv)
         auto_set_dates( &daterange, mysql, datefrom, dateto );
     else
         if( verbose == 1 ) printf( "QUERY RANGE    from %s to %s\n", datefrom, dateto ); 
-    if(( daterange==1 )&&((location=0)||(mysql==0)||is_light( )))
+    
+    
+	
+    int isLight = is_light();
+    if( verbose == 1 ) printf("is_light() =  %u",isLight );
+    
+    if(( daterange==1 )&&((location==0)||(mysql==0)||is_light( )))
     {
 	if (verbose ==1) printf("Address %s\n",conf.BTAddress);
 
