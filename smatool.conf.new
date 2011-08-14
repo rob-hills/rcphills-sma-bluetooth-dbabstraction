@@ -23,10 +23,10 @@ Latitude
 Longitude
 # Mysql (optional) required for storing data
 MySqlHost	localhost
-MySqlDatabase	smatool
-MySqlUser
-MySqlPwd
+MySqlDatabase	smatool.sqlite3.db
+MySqlUser x
+MySqlPwd x
 # PVOutput.org specific data if you are outputting to PVOutput.org.
-PVOutputURL	http://pvoutput.org/service/r1/addstatus.jsp
-PVOutputKey
-PVOutputSid
+PVOutputURL	http://pvoutput.org/service/r2/addbatchstatus.jsp
+PVOutputKey	
+PVOutputSid	
