@@ -1632,21 +1632,33 @@ int curl_post_this_query( char *compurl )
 {
   CURL *curl;
   CURLcode result;
+  char *curlErrorText = (char*)malloc(CURL_ERROR_SIZE);
 
+  curlErrorText[0] = '\0';
   curl = curl_easy_init();
   if (curl){
-    if (debug == 1) printf("url = %s\n",compurl); 
+    if (debug == 1){
+        printf("url = %s\n",compurl);
+//        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorText);
+    }
     curl_easy_setopt(curl, CURLOPT_URL, compurl);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, compurl);
+//    curl_easy_setopt(curl, CURLOPT_FAILONERROR, compurl);
     result = curl_easy_perform(curl);
-    if (debug == 1) printf("result = %d\n",result);
+    if (debug == 1){
+        printf("result = %d\n",result);
+        printf("error text = %s\n",curlErrorText);
+    } else if (result > 0){
+        printf("Unable to post data to PVOutput.  CURL result = %d\n",result);
+    }
     curl_easy_cleanup(curl);
+    free(curlErrorText);
     if( result == 0 ) return 1;
   }
   return 0;
 }
 
-void post_interval_data(char *pvOutputKey, char *pvOutputSid)
+void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
 {
   time_t prior = time(NULL) - ( 60 * 60 * 24 * 1 ); //up to 24 hours before now
   struct tm from_datetime = *(localtime( &prior ) );
@@ -1671,7 +1683,8 @@ void post_interval_data(char *pvOutputKey, char *pvOutputSid)
     if( 0 == rows_processed )
     {
 	    start_datetime = db_row_datetime_data( row, 0  );
-	    string_end = sprintf(posturl,"http://pvoutput.org/service/r1/addbatchstatus.jsp?key=%s&sid=%s&data=",pvOutputKey, pvOutputSid);
+//	    string_end = sprintf(posturl,"http://pvoutput.org/service/r2/addbatchstatus.jsp?key=%s&sid=%s&data=",pvOutputKey, pvOutputSid);
+	    string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
 //	    printf("\nStart of Day Wh=%ld\n",startOfDayWh );
     }
@@ -2599,7 +2612,7 @@ int main(int argc, char **argv)
     archdatalen=0;
     free(last_sent);
     if ((post ==1)&&(mysql==1)&&(error==0)){
-      post_interval_data( conf.PVOutputKey, conf.PVOutputSid);
+      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid);
     }
 
 }
