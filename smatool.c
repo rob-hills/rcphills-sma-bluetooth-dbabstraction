@@ -57,7 +57,7 @@ typedef struct{
     float latitude_f;           /*--latitude  	-la 	*/
     float longitude_f;          /*--longitude 	-lo 	*/
     char MySqlHost[40];         /*--mysqlhost   -h 	*/
-    char MySqlDatabase[20];     /*--mysqldb     -d 	*/
+    char MySqlDatabase[80];     /*--mysqldb     -d 	*/
     char MySqlUser[80];         /*--mysqluser   -user 	*/
     char MySqlPwd[80];          /*--mysqlpwd    -pwd 	*/
     char PVOutputURL[80];       /*--pvouturl    -url 	*/
