@@ -1,0 +1,16 @@
+Notes on building for SQLite3
+
+Dependencies:
+	- sqlite3
+	- libsqlite3-dev
+	- libbluetooth-dev
+	- libcurl4-openssl-dev
+	
+Build command:
+
+	make sqlite
+
+
+DEV NOTES
+	smatool.c line 60: MySqlDatabase variable increased len from 20 to 80
+
