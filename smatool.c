@@ -706,7 +706,7 @@ char *  sunrise( float latitude, float longitude )
    localT = UT + localOffset;
    if( localT < 0 ) localT=localT+24;
    if( localT > 24 ) localT=localT-24;
-   sprintf( returntime, "%02.0f:%02.0f",floor(localT),(localT-floor(localT))*60 ); 
+   sprintf( returntime, "%02.0f:%02.0f",floor(localT),floor((localT-floor(localT))*60) );
    return returntime;
 }
 
@@ -782,7 +782,7 @@ char * sunset( float latitude, float longitude )
    localT = UT + localOffset;
    if( localT < 0 ) localT=localT+24;
    if( localT > 24 ) localT=localT-24;
-   sprintf( returntime, "%02.0f:%02.0f",floor(localT),(localT-floor(localT))*60 ); 
+   sprintf( returntime, "%02.0f:%02.0f",floor(localT),floor((localT-floor(localT))*60) );
    return returntime;
 }
 
