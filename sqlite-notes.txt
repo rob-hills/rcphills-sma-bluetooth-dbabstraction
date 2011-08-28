@@ -1,0 +1,21 @@
+Notes on building for SQLite3
+
+Dependencies:
+	- sqlite3
+	- libsqlite3-dev
+	- libbluetooth-dev
+	- libcurl4-openssl-dev
+	sudo apt-get install sqlite3 libsqlite3-dev libbluetooth-dev libcurl4-openssl-dev
+	
+Build command:
+
+	make sqlite
+
+CONFIGURATION NOTES
+	MySqlDatabase - full path to SQLite Database file
+	MySqlUser, MySqlPwd - must have (dummy) values or DB stuff won't work.  Not used for SQLite db though.
+
+
+DEV NOTES
+	smatool.c line 60: MySqlDatabase variable increased len from 20 to 80
+
