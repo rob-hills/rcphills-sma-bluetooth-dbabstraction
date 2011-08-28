@@ -4,3 +4,6 @@ syntax: glob
 *~
 test.db
 smatool.conf
+db_sqlite3.o
+smatool
+smatool.o
