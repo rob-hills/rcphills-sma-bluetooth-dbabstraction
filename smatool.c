@@ -1647,15 +1647,16 @@ int curl_post_this_query( char *compurl )
     result = curl_easy_perform(curl);
     if (debug == 1){
         printf("result = %d\n",result);
-        printf("error text = %s\n",curlErrorText);
-    } else if (result > 0){
+        printf("Error message = %s\n",curlErrorText);
+    } else if (result != 0){
         printf("Unable to post data to PVOutput.  CURL result = %d\n",result);
+        printf("Error message = %s\n",curlErrorText);
     }
     curl_easy_cleanup(curl);
     free(curlErrorText);
-    if( result == 0 ) return 1;
+    return result;
   }
-  return 0;
+  return -1;
 }
 
 void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
@@ -1678,6 +1679,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
   int string_end = 0;
   char posturl[2048];
   long startOfDayWh = 0;
+  int curlResult = -1;
   while( more_rows )
   {
     if( 0 == rows_processed )
@@ -1695,10 +1697,14 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
     if( 10 == rows_processed || 0 == more_rows  )
     {
       //if post requires last ; to be stripped... posturl[string_end] = '\0';
-      if ( curl_post_this_query(posturl) == 1 )
+      curlResult = curl_post_this_query(posturl);
+      if ( curlResult == 0 )
       {
-	      db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 10, values
-	      rows_processed = 0;
+	  db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 10, values
+	  rows_processed = 0;
+	  sleep(2); //pvoutput api says we can't post more than once a second.
+      } else {
+          printf("NOT sleeping after a post, CURL result was %d\n",curlResult);
       }
     }
   }
