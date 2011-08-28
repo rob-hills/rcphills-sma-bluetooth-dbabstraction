@@ -1639,11 +1639,9 @@ int curl_post_this_query( char *compurl )
   if (curl){
     if (debug == 1){
         printf("url = %s\n",compurl);
-//        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorText);
     }
     curl_easy_setopt(curl, CURLOPT_URL, compurl);
-//    curl_easy_setopt(curl, CURLOPT_FAILONERROR, compurl);
     result = curl_easy_perform(curl);
     if (debug == 1){
         printf("result = %d\n",result);
@@ -1685,7 +1683,6 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
     if( 0 == rows_processed )
     {
 	    start_datetime = db_row_datetime_data( row, 0  );
-//	    string_end = sprintf(posturl,"http://pvoutput.org/service/r2/addbatchstatus.jsp?key=%s&sid=%s&data=",pvOutputKey, pvOutputSid);
 	    string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
 //	    printf("\nStart of Day Wh=%ld\n",startOfDayWh );

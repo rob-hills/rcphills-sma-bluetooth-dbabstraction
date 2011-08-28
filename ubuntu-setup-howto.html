@@ -1,0 +1,324 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+  <title>Step-by-step guide to installing sma-bluetooth on Ubuntu Linux</title>
+  <style type="text/css" title="Amaya theme">
+/* Modern style for Amaya Editor Lite */
+
+/* default rules for the whole document */
+body {
+    font-size: 120%;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    color: black;
+    background-color: white;
+    line-height: 1.2em;
+    margin-left: 4em;
+    margin-right: 2em;
+   }
+
+/* paragraphs */
+p  {
+    padding: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    text-align: left;
+   }
+
+p.smaller {
+        font-size: 60%;
+}
+
+/* headings */
+h1 {
+    font-size: 180%;
+    font-weight: bold;
+    font-style: normal;
+    font-variant: small-caps;
+    text-align: left;
+    padding: 0;
+    margin-top: 1.7em;
+    margin-bottom: 1.7em;
+   }
+h2 {
+    font-size: 150%;
+    font-weight: bold;
+    font-style: normal;
+    padding: 0;
+    margin-top: 1.5em;
+    margin-bottom: 1.1em;
+   }
+h3 {
+    font-size: 130%;
+    font-weight: bold;
+    font-style: normal;
+    padding: 0;
+    margin-top: 1.3em;
+    margin-bottom: 1.1em;
+   }
+h4 {
+    font-size: 110%;
+    font-weight: bold;
+    font-style: normal;
+    padding: 0;
+    margin-top: 1.1em;
+    margin-bottom: 1.1em;
+   }
+h5 {
+    font-size: 100%;
+    font-weight: bold;
+    font-style: italic;
+    padding: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+   }
+h6 {
+    font-size: 100%;
+    font-weight: normal;
+    font-style: italic;
+    padding: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+   }
+
+/* divisions */
+div {
+    padding: 0;
+    margin-top: 0em;
+    margin-bottom: 0em;
+   }
+
+/* lists */
+ul, ol {
+    padding: 0 0 0 3em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+   }
+ul ul, ol ol, ul ol, ol ul {
+    margin-top: 1em;
+    margin-bottom: 1em;
+   }
+li {
+    padding: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    text-align: left;
+   }
+li p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+   }
+dl {
+    padding: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 1em;
+   }
+dl dl {
+    margin-top: 0em;
+    margin-bottom: 0em;
+   }
+dt {
+    padding: 0;
+    font-weight: bold;
+    margin-top: .3em;
+    margin-bottom: .3em;
+   }
+dd {
+    padding: 0;
+    margin-top: .3em;
+    margin-left: 3em;
+    margin-bottom: .3em;
+   }
+dl p {
+    margin-top: .3em;
+    margin-bottom: .3em;
+   }
+
+/* inline */
+strong {
+    font-weight: bold;
+   }
+em {
+    font-style: italic;
+   }
+code {
+    font-family: Courier New, Courier, monospace;
+        font-size: 90%;
+    padding-left: 2em;
+    padding-right: 2em;
+   }
+code.indented {
+    padding-left: 6em;
+   }
+ins {
+    background-color: yellow;
+    text-decoration: underline;
+   }
+del {
+    text-decoration: line-through;
+   }
+
+/* anchors */
+a[href] {
+    color: blue;
+    text-decoration: underline;
+   }
+
+/* end */
+  </style>
+</head>
+
+<body>
+<h1>Step-by-step guide to installing sma-bluetooth on Ubuntu Linux</h1>
+
+<p>This guide will lead you through the process of installing and configuring the
+   <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">sma-bluetooth</a> tool that enables you to pull
+   data from your SMA Sunnyboy inverter via bluetooth in Linux and upload it to <a href="http://pvoutput.org" target="_blank">PVOutput</a>.
+   It specifically uses a version of the <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">sma-bluetooth</a>
+   tool that has been modified by <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">Tony Brown</a> and then myself
+   (<a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">Rob Hills</a>), to store its data into a simple SQLite3 database.
+   While this version of the smatool program is also capable of storing your Inverter logs in a <a href="http://www.mysql.com/" target="_blank">MySQL</a>
+   database, this guide does not cover the use of MySQL.</p>
+<p>The following steps require you to complete some relatively geeky tasks like downloading source code, compiling programs and creating databases.
+   Nevertheless, the aim of this guide is to help the non-programmer to navigate his/her way through these tasks.  If the guide doesn't do this for you
+   and you have some constructive comments to improve it, please contact me (Rob Hills) via the
+   <a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">source code page</a>.</p>
+
+<p>The following steps assume that:
+	<ol>
+		<li>You have created a <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Account</a>;</li>
+		<li>you are running Ubuntu Linux; and</li>
+		<li>you have opened a Terminal window.</li>
+	</ol>
+</p>
+<ol>
+  <li><h2>Open the text editor</h2>
+    <p>You'll need this at various times so you may as well open it now. Type
+    (or copy/paste) the following into your Terminal Window:</p>
+    <code>gedit &amp;</code>
+    <p class="smaller">Note, the " &amp;" bit at the end is important - it
+    makes your editor run in the background without tying up your terminal. If
+    you forget it, you will find you can't type anything more in the terminal
+    without closing the text editor window.</p>
+  </li>
+  <li><h2>Install dependencies</h2>
+    <p>Dependencies are programs that need to be installed before our sma-bluetooth system can be downloaded, built and operated correctly.</p>
+    <p>At the terminal prompt, type (or copy the following line and paste it
+    into your terminal):</p>
+    <p><code>sudo apt-get install sqlite3 libsqlite3-dev libbluetooth-dev
+    libcurl4-openssl-dev mercurial</code> </p>
+    <p>You will probably be prompted for a password - use your usual Ubuntu
+    password (or nothing if you don't have to log in to Ubuntu). Following
+    this, you will see a series of programs downloaded and installed.</p>
+  </li>
+  <li><h2>Make a folder for the program</h2>
+    <p>This guide assumes your program will run in a folder named
+    "sma-bluetooth" inside another folder named "bin" (short for "binary") in
+    your home directory. To do this, type (or copy/paste) the following line
+    into your Terminal Window:</p>
+    <code>mkdir -p ~/bin/sma-bluetooth</code>
+    <p>Now change to our newly created directory:</p>
+    <code>cd ~/bin/sma-bluetooth</code> </li>
+  <li><h2>Download the program source</h2>
+	  <p>You will be downloading the program code for a version of the sma-bluetooth program that has been modified to store all the downloaded data in a simple
+		  (SQLite3) database.  You don't need to know or understand this, but it can be useful for analysing the data etc.
+		  To do this, type (copy/past) the following into your terminal window:</p>
+	  <code>hg clone https://rcp.hills@code.google.com/r/rcphills-sma-bluetooth-dbabstraction/ ./</code>
+  </li>
+  <li><h2>Build the Program</h2>
+	  <p>In the previous step, you downloaded the <em>source code</em> for the program, but the computer can't run this.  To convert it to something the computer
+		 can run, you need to &quot;build&quot; the program.  To do this, type (or copy/past) the following into your Terminal Window.</p>
+	  <code>make sqlite</code>
+	  <p>If this command has been successful, you should see a number of &quot;gcc&quot; commands and some warnings, but <strong>no errors</strong>.  Several new
+	     files will have been created including one named <em>smatool</em>.  If you now type the following in your terminal window:</p>
+	  <code>./smatool -?</code>
+	  <p>you should see a &quot;help&quot; screen giving concise details about how to run the program.  If you do, congratulations, you have now successfully installed
+	     your &quot;sma-bluetooth&quot; program!</p>
+  </li>
+  <li><h2>Check Bluetooth Configuration</h2>
+    <p>We&apos;re now ready to configure our program, but first we need to sort out some Bluetooth details.  Start by 	     checking that the SMA Inverter is visible via Bluetooth - type the following in your terminal window
+       (or copy/paste):</p>
+    <code>hcitool scan</code>
+    <p>Hopefully you will see something like this:</p>
+    <code>Scanning ...<br /> </code>
+    <code class="indented">00:80:75:19:DB:25 SMA001d SN: 2100424002 SN2100424002</code>
+    <p>Depending on how many bluetooth devices are visible, you may see more
+    than one line of scan results. Like the one above, you should see something
+    in it that identifies it as your SMA inverter. The special code at the
+    beginning (ie the <em>00:80:75:19:DB:25</em> bit above) is the "Bluetooth
+    Address" of your SMA inverter and you'll need this later. Copy it (wipe it
+    with your mouse, right-click and select "copy" from the menu) and paste it
+    into your Text Editor.</p>
+  </li>
+  <li><h2>Create your configuration file</h2></li>
+  <p>The <em>smatool</em> program reads a special file named &quot;smatool.conf&quot; for its configuration information.  You have already downloaded a template
+     of this file when you <em>downloaded the program source</em> a few steps back.  This template is named &quot;smatool.conf.new&quot; and you&apos;ll now
+     make a copy of that by typing (copy/paste) the following into your terminal window:</p>
+  <code>cp smatool.conf.new smatool.conf</code>
+  <li><h2>Customise your configuration file</h2></li>
+  <p>There are several lines in your configuration file that will need to be checked and possibly changed.  To do this, open your configuration file with
+     the default text editor <em>gedit</em>:</p>
+  <code>gedit smatool.conf &amp;</code>
+  <p class="smaller">Note 1: The very bottom of the editor (the <em>status bar</em>) shows a number of bits of information
+     including the line number.  When you first open your <em>smatool.conf</em> file, near the right end of the
+     status bar, it should say something like <em>Ln 1, Col 1</em>.  As you move the cursor around with either your
+     keyboard arrow keys, or your mouse, the status bar should update to indicate which line (and column) your cursor
+     is positioned at.</p>
+  <p class="smaller">Note 2: Look through the file and notice that some lines start with a # (pound) character.  These lines are ignored by the program - they are
+     known as &quot;comments&quot;.  After you have finished modifying your smatool.conf file, feel free to add your own comment lines as a reminder about changes
+     you have made.  Note, the # (pound) character must be <strong>in column 1 of the line</strong>.</p>
+  <p class="smaller">Note 3: If you already had your text editor open as suggested earlier, you will almost certainly find that it has opened your smatool.conf
+     file in a new tab in the same text editor window.  The tabs should be near the top of your editor window, just beneath the toolbar.</p>
+  <p><strong>Line 9:</strong> This specifies which Inverter you have.  The available options are listed in the comment in line 8.  If your inverter is <em>not</em>
+     a 3000TL, you need to change this value.</p>
+  <p><strong>Line 11:</strong> You <strong>must</strong> put your Inverter&apos;s Bluetooth Address value here.  You have already found out this value in step 6
+     above and if you followed those instructions, you'll have pasted it into the other tab in your editor.  Click on its tab (it will most likely be called
+     &quot;Untitled Document 1&quot;), highlight the Bluetooth Address (something like &quot;00:80:75:19:DB:25&quot;), right-click and select &quot;copy&quot; from
+     the dropdown menu.  Then click back on your &quot;smatool.conf&quot; tab, add a space or three after the &quot;BTAddress&quot; word that&apos;s already
+     there and paste in your Inverter&apos;s Bluetooth Address (right-click and choose &quot;paste&quot; from the dropdown menu).  It should end up looking something
+     like this:</p>
+  <code>BTAddress&nbsp;&nbsp;&nbsp;00:80:75:19:DB:25</code>
+  <p><strong>Line 15:</strong> You <strong>must</strong> put your Inverter&apos;s User password in here.  By default, this is usually four zeroes &quot;0000&quot;,
+     unless your installer has changed it.  Add one or three spaces after the word &quot;Password&quot; on this line and then put your password.  It should end
+     up looking something like this:</p>
+  <code>Password&nbsp;&nbsp;&nbsp;0000</code>
+  <p><strong>Lines 22 and 23:</strong> While the &quot;location&quot; is not required, I have found the program works better if you include your location.
+     You need to put in the latitude and longitude in whole degrees only.  If you don't know your latitude and longitude, you can find them using the
+     <a href="http://www.earthtools.org/" target="_blank">Earth Tools website</a>.  These two lines should end up looking something like this:</p>
+  <code>Latitude&nbsp;&nbsp;&nbsp;-32<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;&nbsp;&nbsp;115</code>
+  <p class="smaller">Note, by convention Latitude and Longitude are expressed as a pair of numbers, with Latitude usually given first.  Latitude is the number of
+    degrees North or South of the equator (indicated by a &quot;N&quot; or &quot;S&quot; following the number).  Longitude is the number of degrees East or West of
+    Greenwich (UK) (indicated by an &quot;E&quot; or &quot;W&quot; following the number). The &quot;smatool&quot; program doesn't use N, S, E, or W, but instead
+    uses positive or negative numbers.  Hence, if your Latitude is South of the equator, it should be a negative number (like mine above).  If your longitude is
+    West of Greenwich, it should be a negative number. North Latitudes and East Longitudes are positive numbers.</p>
+  <p><strong>Lines 25 to 28:</strong> These lines contain the Database configuration and are necessary if you wish to keep a local store of your Inverter logs.
+    Although these lines refer to &quot;MySQL&quot; database stuff, we will actually be using a SQLite3 database.</p>
+  <p><strong>Line 25:</strong> MySqlHost - this is the name of the computer that will contain the database.  Almost certainly it will be the same computer as you're
+     running your program on which is referred to by the nickname &quot;localhost&quot; and will look like this:</p>
+  <code>MySqlHost&nbsp;&nbsp;localhost</code>
+  <p><strong>Line 26:</strong> MySqlDatabase - this contains the full name of your database, including the folder that it lives in.  If you&apos;re not sure,
+     simply use the following example, which will create a database named &quot;smatool.sqlite3.db&quot; in a folder named &quot;smatool&quot; in your home
+     directory:</p>
+  <code>MySqlDatabase&nbsp;&nbsp;~/smatool/smatool.sqlite3.db</code>
+  <p><strong>Lines 27 and 28:</strong> Username and Password.  SQLite databases usually don't have usernames and passwords, however if you leave these empty,
+     the program won&nbsp;t work.  I simply put an &quot;x&quot; for each of them, like this:</p>
+  <code>MySqlUser x<br />
+&nbsp;&nbsp;&nbsp;MySqlPwd x</code>
+  <p><strong>Lines 30 to 32:</strong> These contain the critical PVOutput configuration details:</p>
+  <p><strong>Line 30:</strong> You can simply leave this line as it is.  This is the link on the PVOutput site that the program will use to upload your data.</p>
+  <p><strong>Line 31:</strong> PVOutput Key - you <strong>must</strong> enter this value.  You will find it on your
+     <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Settings page</a> in the third-last field from the bottom of the page.
+     It is called the &quot;API Key&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
+     it should look something like this:</p>
+  <code>PVOutputKey&nbsp;&nbsp;6e4768c8e6a2b26f5c88c0d501f2c7010742ad7c</code>
+  <p><strong>Line 32:</strong> PVOutput SID - you <strong>must</strong> enter this value.  You will find it on your
+     <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Settings page</a> in the last field at the bottom of the page.
+     It is called the &quot;System ID&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
+     it should look something like this:</p>
+  <code>PVOutputSid	9068</code>
+</ol>
+</body>
+</html>
