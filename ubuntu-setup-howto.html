@@ -178,9 +178,21 @@ a[href] {
    data from your SMA Sunnyboy inverter via bluetooth in Linux and upload it to <a href="http://pvoutput.org" target="_blank">PVOutput</a>.
    It specifically uses a version of the <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">sma-bluetooth</a>
    tool that has been modified by <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">Tony Brown</a> and then myself
-   (<a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">Rob Hills</a>), to store its data into a simple SQLite3 database.</p>
+   (<a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">Rob Hills</a>), to store its data into a simple SQLite3 database.
+   While this version of the smatool program is also capable of storing your Inverter logs in a <a href="http://www.mysql.com/" target="_blank">MySQL</a>
+   database, this guide does not cover the use of MySQL.</p>
+<p>The following steps require you to complete some relatively geeky tasks like downloading source code, compiling programs and creating databases.
+   Nevertheless, the aim of this guide is to help the non-programmer to navigate his/her way through these tasks.  If the guide doesn't do this for you
+   and you have some constructive comments to improve it, please contact me (Rob Hills) via the
+   <a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">source code page</a>.</p>
 
-<p>The following steps assume that you are running Ubuntu Linux and have opened a Terminal window.</p>
+<p>The following steps assume that:
+	<ol>
+		<li>You have created a <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Account</a>;</li>
+		<li>you are running Ubuntu Linux; and</li>
+		<li>you have opened a Terminal window.</li>
+	</ol>
+</p>
 <ol>
   <li><h2>Open the text editor</h2>
     <p>You'll need this at various times so you may as well open it now. Type
@@ -192,8 +204,7 @@ a[href] {
     without closing the text editor window.</p>
   </li>
   <li><h2>Install dependencies</h2>
-    <p>Dependencies are programs that need to be installed before our
-    sma-bluetooth system will operate correctly.</p>
+    <p>Dependencies are programs that need to be installed before our sma-bluetooth system can be downloaded, built and operated correctly.</p>
     <p>At the terminal prompt, type (or copy the following line and paste it
     into your terminal):</p>
     <p><code>sudo apt-get install sqlite3 libsqlite3-dev libbluetooth-dev
@@ -259,7 +270,7 @@ a[href] {
      known as &quot;comments&quot;.  After you have finished modifying your smatool.conf file, feel free to add your own comment lines as a reminder about changes
      you have made.  Note, the # (pound) character must be <strong>in column 1 of the line</strong>.</p>
   <p class="smaller">Note 3: If you already had your text editor open as suggested earlier, you will almost certainly find that it has opened your smatool.conf
-     file in a new tab in the same editor.  The tabs should be near the top of your editor window, just beneath the toolbar.</p>
+     file in a new tab in the same text editor window.  The tabs should be near the top of your editor window, just beneath the toolbar.</p>
   <p><strong>Line 9:</strong> This specifies which Inverter you have.  The available options are listed in the comment in line 8.  If your inverter is <em>not</em>
      a 3000TL, you need to change this value.</p>
   <p><strong>Line 11:</strong> You <strong>must</strong> put your Inverter&apos;s Bluetooth Address value here.  You have already found out this value in step 6
@@ -269,10 +280,45 @@ a[href] {
      there and paste in your Inverter&apos;s Bluetooth Address (right-click and choose &quot;paste&quot; from the dropdown menu).  It should end up looking something
      like this:</p>
   <code>BTAddress&nbsp;&nbsp;&nbsp;00:80:75:19:DB:25</code>
-  <p></p>
-  <code></code>
-  <p></p>
-  <code></code>
+  <p><strong>Line 15:</strong> You <strong>must</strong> put your Inverter&apos;s User password in here.  By default, this is usually four zeroes &quot;0000&quot;,
+     unless your installer has changed it.  Add one or three spaces after the word &quot;Password&quot; on this line and then put your password.  It should end
+     up looking something like this:</p>
+  <code>Password&nbsp;&nbsp;&nbsp;0000</code>
+  <p><strong>Lines 22 and 23:</strong> While the &quot;location&quot; is not required, I have found the program works better if you include your location.
+     You need to put in the latitude and longitude in whole degrees only.  If you don't know your latitude and longitude, you can find them using the
+     <a href="http://www.earthtools.org/" target="_blank">Earth Tools website</a>.  These two lines should end up looking something like this:</p>
+  <code>Latitude&nbsp;&nbsp;&nbsp;-32<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;Longitude&nbsp;&nbsp;&nbsp;115</code>
+  <p class="smaller">Note, by convention Latitude and Longitude are expressed as a pair of numbers, with Latitude usually given first.  Latitude is the number of
+    degrees North or South of the equator (indicated by a &quot;N&quot; or &quot;S&quot; following the number).  Longitude is the number of degrees East or West of
+    Greenwich (UK) (indicated by an &quot;E&quot; or &quot;W&quot; following the number). The &quot;smatool&quot; program doesn't use N, S, E, or W, but instead
+    uses positive or negative numbers.  Hence, if your Latitude is South of the equator, it should be a negative number (like mine above).  If your longitude is
+    West of Greenwich, it should be a negative number. North Latitudes and East Longitudes are positive numbers.</p>
+  <p><strong>Lines 25 to 28:</strong> These lines contain the Database configuration and are necessary if you wish to keep a local store of your Inverter logs.
+    Although these lines refer to &quot;MySQL&quot; database stuff, we will actually be using a SQLite3 database.</p>
+  <p><strong>Line 25:</strong> MySqlHost - this is the name of the computer that will contain the database.  Almost certainly it will be the same computer as you're
+     running your program on which is referred to by the nickname &quot;localhost&quot; and will look like this:</p>
+  <code>MySqlHost&nbsp;&nbsp;localhost</code>
+  <p><strong>Line 26:</strong> MySqlDatabase - this contains the full name of your database, including the folder that it lives in.  If you&apos;re not sure,
+     simply use the following example, which will create a database named &quot;smatool.sqlite3.db&quot; in a folder named &quot;smatool&quot; in your home
+     directory:</p>
+  <code>MySqlDatabase&nbsp;&nbsp;~/smatool/smatool.sqlite3.db</code>
+  <p><strong>Lines 27 and 28:</strong> Username and Password.  SQLite databases usually don't have usernames and passwords, however if you leave these empty,
+     the program won&nbsp;t work.  I simply put an &quot;x&quot; for each of them, like this:</p>
+  <code>MySqlUser x<br />
+&nbsp;&nbsp;&nbsp;MySqlPwd x</code>
+  <p><strong>Lines 30 to 32:</strong> These contain the critical PVOutput configuration details:</p>
+  <p><strong>Line 30:</strong> You can simply leave this line as it is.  This is the link on the PVOutput site that the program will use to upload your data.</p>
+  <p><strong>Line 31:</strong> PVOutput Key - you <strong>must</strong> enter this value.  You will find it on your
+     <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Settings page</a> in the third-last field from the bottom of the page.
+     It is called the &quot;API Key&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
+     it should look something like this:</p>
+  <code>PVOutputKey&nbsp;&nbsp;6e4768c8e6a2b26f5c88c0d501f2c7010742ad7c</code>
+  <p><strong>Line 32:</strong> PVOutput SID - you <strong>must</strong> enter this value.  You will find it on your
+     <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Settings page</a> in the last field at the bottom of the page.
+     It is called the &quot;System ID&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
+     it should look something like this:</p>
+  <code>PVOutputSid	9068</code>
 </ol>
 </body>
 </html>
