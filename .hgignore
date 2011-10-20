@@ -4,6 +4,6 @@ syntax: glob
 *~
 test.db
 smatool.conf
-db_sqlite3.o
+*.o
 smatool
-smatool.o
+temp-log.txt
