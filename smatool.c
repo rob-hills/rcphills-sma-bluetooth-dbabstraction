@@ -1421,18 +1421,33 @@ int curl_post_this_query( char *compurl )
   return -1;
 }
 
-void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
+void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid, int repost, char *datefrom, char *dateto)
 {
   time_t prior = time(NULL) - ( 60 * 60 * 24 * 1 ); //up to 24 hours before now
   struct tm from_datetime = *(localtime( &prior ) );
-  from_datetime.tm_hour = 0;
-  from_datetime.tm_min = 0;
-  from_datetime.tm_sec = 0;
+  if (repost == 0) {
+      from_datetime.tm_hour = 0;
+      from_datetime.tm_min = 0;
+      from_datetime.tm_sec = 0;
+  } else {
+      /*
+       **************** TODO ********************
+       * Need to be able to post data between 2 dates which means modifying the db_get_unposted_data function.
+       */
+      strptime( datefrom, "%Y-%m-%d %H:%M:%S", &from_datetime );  // reposting, use datefrom
+      if (debug == 1) {
+        printf("checking DB for unposted data after from_datetime = %04d-%02d-%02d %02d:%02d\n", from_datetime.tm_year+1900, from_datetime.tm_mon+1, from_datetime.tm_mday, from_datetime.tm_hour, from_datetime.tm_min);
+      }
+  }
 
   row_handle *row = db_get_unposted_data( &from_datetime );
   if( row == NULL )
   {
-	  return; //nothing to post, db_get_unposted_data returns NULL if no results
+	if (debug == 1) {
+            printf("No data posted because db_get_unposted_data returned NULL ");
+            printf("for from_datetime = %04d-%02d-%02d %02d:%02d\n", from_datetime.tm_year+1900, from_datetime.tm_mon+1, from_datetime.tm_mday, from_datetime.tm_hour, from_datetime.tm_min);
+        }
+	return; //nothing to post, db_get_unposted_data returns NULL if no results
   }
 
   int rows_processed = 0;
@@ -2351,7 +2366,7 @@ int main(int argc, char **argv)
     archdatalen=0;
     free(last_sent);
     if ((post ==1)&&(mysql==1)&&(error==0)){
-      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid);
+      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid, repost, datefrom, dateto);
     }
 
 }
