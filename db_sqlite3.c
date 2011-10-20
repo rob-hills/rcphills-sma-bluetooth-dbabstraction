@@ -379,8 +379,6 @@ int db_set_data_posted(struct tm *from_datetime, struct tm *to_datetime )
   
 }
 
-
-
 /*
  * Return an opaque row handle pointer that can be iterated over to get the values for the specified day
  * Column ID 0 = interval datetime
@@ -417,6 +415,13 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
   sqlite3_finalize( pStmt );
   return NULL;
 }
+
+/*
+ *************** TODO ******************
+ * NEED A NEW db_get_data function based on the above that gets data between a from_datetime and a to_datetime irrespective of the
+ * PVOutput field status (for reposting old data).
+ */
+
 
 char* db_row_string_data( row_handle *row, int column_id )
 {
