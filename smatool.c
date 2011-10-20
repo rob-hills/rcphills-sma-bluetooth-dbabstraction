@@ -786,186 +786,9 @@ char * sunset( float latitude, float longitude )
    return returntime;
 }
 
-//int install_mysql_tables( ConfType * conf )
-/*  Do initial mysql table creationsa */
-/*
-{
-    int	        found=0;
-    MYSQL_ROW 	row;
-    char 	SQLQUERY[1000];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, "mysql");
-    //Get Start of day value
-    sprintf(SQLQUERY,"SHOW DATABASES" );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    while ( ( row = mysql_fetch_row(res)) )  //if there is a result, update the row
-    {
-       if( strcmp( row[0], conf->MySqlDatabase ) == 0 )
-       {
-          found=1;
-          printf( "Database exists - exiting" );
-       }
-    }
-    if( found == 0 )
-    {
-       sprintf( SQLQUERY,"CREATE DATABASE IF NOT EXISTS %s", conf->MySqlDatabase );
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-
-       sprintf( SQLQUERY,"USE  %s", conf->MySqlDatabase );
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-
-       sprintf( SQLQUERY,"CREATE TABLE `Almanac` ( `id` bigint(20) NOT NULL \
-          AUTO_INCREMENT, \
-          `date` date NOT NULL,\
-          `sunrise` datetime DEFAULT NULL,\
-          `sunset` datetime DEFAULT NULL,\
-          `CHANGETIME` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, \
-           PRIMARY KEY (`id`),\
-           UNIQUE KEY `date` (`date`)\
-           ) ENGINE=MyISAM" );
-
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-  
-       sprintf( SQLQUERY, "CREATE TABLE `DayData` ( \
-           `DateTime` datetime NOT NULL, \
-           `Inverter` varchar(10) NOT NULL, \
-           `Serial` varchar(40) NOT NULL, \
-           `CurrentPower` int(11) DEFAULT NULL, \
-           `ETotalToday` DECIMAL(10,3) DEFAULT NULL, \
-           `PVOutput` datetime DEFAULT NULL, \
-           `CHANGETIME` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP, \
-           PRIMARY KEY (`DateTime`,`Inverter`,`Serial`) \
-           ) ENGINE=MyISAM" );
-
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-
-       sprintf( SQLQUERY, "CREATE TABLE `settings` ( \
-           `value` varchar(128) NOT NULL, \
-           `data` varchar(500) NOT NULL, \
-           PRIMARY KEY (`value`) \
-           ) ENGINE=MyISAM" );
-
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-        
-       
-       sprintf( SQLQUERY, "INSERT INTO `settings` SET `value` = \'schema\', `data` = \'%s\' ", SCHEMA );
-
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-    }
-    mysql_close(conn);
-
-    return found;
-}
-*/
-//void update_mysql_tables( ConfType * conf )
-/*  Do mysql table schema updates */
-/*{
-    int		schema_value=0;
-    MYSQL_ROW 	row;
-    char 	SQLQUERY[1000];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase );
-    sprintf( SQLQUERY,"USE  %s", conf->MySqlDatabase );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-*/    /*Check current schema value*/
-//    sprintf(SQLQUERY,"SELECT data FROM settings WHERE value=\'schema\' " );
-/*    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    if (( row = mysql_fetch_row(res)))  //if there is a result, update the row
-    {
-       schema_value=atoi(row[0]);
-    }
-    mysql_free_result(res);
-    if( schema_value == 1 ) { //Upgrade from 1 to 2
-        sprintf(SQLQUERY,"ALTER TABLE `DayData` CHANGE `ETotalToday` `ETotalToday` DECIMAL(10,3) NULL DEFAULT NULL" );
-        if (debug == 1) printf("%s\n",SQLQUERY);
-        DoQuery(SQLQUERY);
-        sprintf( SQLQUERY, "UPDATE `settings` SET `value` = \'schema\', `data` = 2 " );
-        if (debug == 1) printf("%s\n",SQLQUERY);
-        DoQuery(SQLQUERY);
-    }
-    mysql_close(conn);
-}
-*/
-//int check_schema( ConfType * conf )
-/*  Check if using the correct database schema */
-//{
-/*    int	        found=0;
-    MYSQL_ROW 	row;
-    char 	SQLQUERY[200];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
-    //Get Start of day value
-    sprintf(SQLQUERY,"SELECT data FROM settings WHERE value=\'schema\' " );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
-    {
-       if( strcmp( row[0], SCHEMA ) == 0 )
-          found=1;
-    }
-    mysql_free_result(res);
-    mysql_close(conn);
-*/
-/*
-    int schema = db_get_schema();
-    if( SCHEMA_VALUE != schema )
-    {
-       printf( "Please Update database schema use --UPDATE\n" );
-       return 0;
-    }
-    return 1;
-}
-*/
-//int todays_almanac( ConfType *conf )
-/*  Check if sunset and sunrise have been set today */
-//{
-/*
-    int	        found=0;
-    MYSQL_ROW 	row;
-    char 	SQLQUERY[200];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
-    //Get Start of day value
-    sprintf(SQLQUERY,"SELECT sunrise FROM Almanac WHERE date=DATE_FORMAT( NOW(), \"%%Y%%m%%d\" ) " );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    if ( (row = mysql_fetch_row(res)) )  //if there is a result, update the row
-    {
-       found=1;
-    }
-    mysql_close(conn);
-    return found;
-
-    
-}
-*/
-/*
-void update_almanac( ConfType *conf, char * sunrise, char * sunset )
-{
-    char 	SQLQUERY[200];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
-    //Get Start of day value
-    sprintf(SQLQUERY,"INSERT INTO Almanac SET sunrise=CONCAT(DATE_FORMAT( NOW(), \"%%Y-%%m-%%d \"),\"%s\"), sunset=CONCAT(DATE_FORMAT( NOW(), \"%%Y-%%m-%%d \"),\"%s\" ), date=NOW() ", sunrise, sunset );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    mysql_close(conn);
-}
-*/
 int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
 /*  If there are no dates set - get last updated date and go from there to NOW */
 {
-//    MYSQL_ROW 	row;
-//    char 	SQLQUERY[200];
     time_t  	curtime;
     int 	day,month,year,hour,minute,second;
     struct tm 	loctime;
@@ -973,18 +796,6 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
     loctime = *(localtime(&curtime));
     if( mysql == 1 )
     {
-/*        OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
-        //Get last updated value
-        sprintf(SQLQUERY,"SELECT DATE_FORMAT( DateTime, \"%%Y-%%m-%%d %%H:%%i:%%S\" ) FROM DayData ORDER BY DateTime DESC LIMIT 1" );
-        if (debug == 1) printf("%s\n",SQLQUERY);
-        DoQuery(SQLQUERY);
-        if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
-        {
-           strcpy( datefrom, row[0] );
-        }
-        mysql_free_result( res );
-        mysql_close(conn);
-*/
       struct tm last;
       last = db_get_last_recorded_interval_datetime(&loctime);
       if( last.tm_year > 100 ) //ie, after year 2000
@@ -999,15 +810,6 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
     loctime = *(localtime(&curtime));
     loctime.tm_sec = 0;
     strftime(dateto, 25, "%Y-%m-%d %H:%M:%S", &loctime );
-/*
-    day = loctime->tm_mday;
-    month = loctime->tm_mon +1;
-    year = loctime->tm_year + 1900;
-    hour = loctime->tm_hour;
-    minute = loctime->tm_min; 
-    second = loctime->tm_sec; 
-    sprintf( dateto, "%04d-%02d-%02d %02d:%02d:00", year, month, day, hour, minute );
-*/
     (*daterange)=1;
     if( verbose == 1 ) printf( "Auto set dates from %s to %s\n", datefrom, dateto );
     return 1;
@@ -1032,45 +834,7 @@ int is_light( )
   strftime(timestring,25,"%H:%M", &now);
   if( verbose == 1 ) printf("now: %s\n", timestring  );
   if( strcmp( timestring, sunrise ) >= 0 && strcmp( timestring, sunset ) <= 0) return 1; //now is between sunrise and sunset
-  /*
-  struct tm last = db_get_last_recorded_interval_datetime( &now );
-  strftime(timestring,25,"%Y-%m-%d %H:%M", &last);
-  
-  strftime(sunset_today,25,"%Y-%m-%d ", &now);
-  strcat(sunset_today, sunset );
-  
-  if( verbose == 1 ) printf("last: %s, sunset_today: %s\n", timestring, sunset_today  );
-  if( strcmp( timestring, sunset ) > 0 ) return 0; //last is after sunset. we're done
-  */
   return 0;
-/*  strftime( nowstring, 25, "
-  int	        light=1;
-    MYSQL_ROW 	row;
-    char 	SQLQUERY[200];
-
-    OpenMySqlDatabase( conf->MySqlHost, conf->MySqlUser, conf->MySqlPwd, conf->MySqlDatabase);
-    //Get Start of day value
-    sprintf(SQLQUERY,"SELECT if(sunrise < NOW(),1,0) FROM Almanac WHERE date= DATE_FORMAT( NOW(), \"%%Y-%%m-%%d\" ) " );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
-    {
-       if( atoi( (char *)row[0] ) == 0 ) light=0;
-    }
-    if( light ) {
-       sprintf(SQLQUERY,"SELECT if( dd.datetime > al.sunset,1,0) FROM DayData as dd left join Almanac as al on al.date=DATE(dd.datetime) and al.date=DATE(NOW()) WHERE 1 ORDER BY dd.datetime DESC LIMIT 1" );
-       if (debug == 1) printf("%s\n",SQLQUERY);
-       DoQuery(SQLQUERY);
-       if ((row = mysql_fetch_row(res)))  //if there is a result, update the row
-       {
-          if( atoi( (char *)row[0] ) == 1 ) light=0;
-       }
-    }
-    
-    mysql_close(conn);
-    return light;
-*/
-  
 }
 
 //Set a value depending on inverter
@@ -1657,18 +1421,33 @@ int curl_post_this_query( char *compurl )
   return -1;
 }
 
-void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
+void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid, int repost, char *datefrom, char *dateto)
 {
   time_t prior = time(NULL) - ( 60 * 60 * 24 * 1 ); //up to 24 hours before now
   struct tm from_datetime = *(localtime( &prior ) );
-  from_datetime.tm_hour = 0;
-  from_datetime.tm_min = 0;
-  from_datetime.tm_sec = 0;
+  if (repost == 0) {
+      from_datetime.tm_hour = 0;
+      from_datetime.tm_min = 0;
+      from_datetime.tm_sec = 0;
+  } else {
+      /*
+       **************** TODO ********************
+       * Need to be able to post data between 2 dates which means modifying the db_get_unposted_data function.
+       */
+      strptime( datefrom, "%Y-%m-%d %H:%M:%S", &from_datetime );  // reposting, use datefrom
+      if (debug == 1) {
+        printf("checking DB for unposted data after from_datetime = %04d-%02d-%02d %02d:%02d\n", from_datetime.tm_year+1900, from_datetime.tm_mon+1, from_datetime.tm_mday, from_datetime.tm_hour, from_datetime.tm_min);
+      }
+  }
 
   row_handle *row = db_get_unposted_data( &from_datetime );
   if( row == NULL )
   {
-	  return; //nothing to post, db_get_unposted_data returns NULL if no results
+	if (debug == 1) {
+            printf("No data posted because db_get_unposted_data returned NULL ");
+            printf("for from_datetime = %04d-%02d-%02d %02d:%02d\n", from_datetime.tm_year+1900, from_datetime.tm_mon+1, from_datetime.tm_mday, from_datetime.tm_hour, from_datetime.tm_min);
+        }
+	return; //nothing to post, db_get_unposted_data returns NULL if no results
   }
 
   int rows_processed = 0;
@@ -1685,7 +1464,6 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid)
 	    start_datetime = db_row_datetime_data( row, 0  );
 	    string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
-//	    printf("\nStart of Day Wh=%ld\n",startOfDayWh );
     }
     string_end += sprintf( posturl + string_end ,"%s,%s,%ld,%s;", db_row_string_data(row,1), db_row_string_data(row,2), db_row_int_data(row,3) - startOfDayWh, db_row_string_data(row,4)  );
     rows_processed++;
@@ -1769,7 +1547,6 @@ int main(int argc, char **argv)
 	float gtotal;
 	float ptotal;
 	float strength;
-//	MYSQL_ROW row, row1;
 	char SQLQUERY[200];
    struct archdata_type
    {
@@ -1837,13 +1614,7 @@ int main(int argc, char **argv)
     // Get Local Timezone offset in seconds
     get_timezone_in_seconds( tzhex );
     // Location based information to avoid quering Inverter in the dark
-    if((location==1)&&(mysql==1)) {/*
-       if( ! todays_almanac( &conf ) ) {
-           sprintf( sunrise_time, "%s", sunrise(conf.latitude_f,conf.longitude_f ));
-           sprintf( sunset_time, "%s", sunset(conf.latitude_f, conf.longitude_f ));
-           if( verbose==1) printf( "sunrise=%s sunset=%s\n", sunrise_time, sunset_time );
-           update_almanac(  &conf, sunrise_time, sunset_time );
-           */
+    if((location==1)&&(mysql==1)) {
       loctime = localtime( &curtime );
       if( !db_fetch_almanac( loctime , sunrise_time, sunset_time ) )
       {
@@ -2581,16 +2352,6 @@ int main(int argc, char **argv)
     }
 
     if ((mysql ==1)&&(error==0)){
-	/* Connect to database */
-/*        OpenMySqlDatabase( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
-        for( i=1; i<archdatalen; i++ ) //Start at 1 as the first record is a dummy
-        {
-	    sprintf(SQLQUERY,"INSERT INTO DayData ( DateTime, Inverter, Serial, CurrentPower, EtotalToday ) VALUES ( FROM_UNIXTIME(%ld),\'%s\',%ld,%0.f, %.3f ) ON DUPLICATE KEY UPDATE DateTime=Datetime, Inverter=VALUES(Inverter), Serial=VALUES(Serial), CurrentPower=VALUES(CurrentPower), EtotalToday=VALUES(EtotalToday)",(archdatalist+i)->date, (archdatalist+i)->inverter, (archdatalist+i)->serial, (archdatalist+i)->current_value, (archdatalist+i)->accum_value );
-	    if (debug == 1) printf("%s\n",SQLQUERY);
-	    DoQuery(SQLQUERY);
-        }
-        mysql_close(conn);
-*/
 	for( i=1; i<archdatalen; i++ ) //Start at 1 as the first record is a dummy
         {
 	  struct tm *interval;
@@ -2598,16 +2359,6 @@ int main(int argc, char **argv)
 	  db_set_interval_value( interval, (archdatalist+i)->inverter, (archdatalist+i)->serial, (archdatalist+i)->current_value, (archdatalist+i)->accum_value );
         }
     }
-/*
-    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
-    loctime = localtime(&curtime);
-    day = loctime->tm_mday;
-    month = loctime->tm_mon +1;
-    year = loctime->tm_year + 1900;
-    hour = loctime->tm_hour;
-    minute = loctime->tm_min; 
-    datapoint = (int)(((hour * 60) + minute)) / 5; 
-*/
  
     close(s);
     if( archdatalen > 0 )
@@ -2615,88 +2366,10 @@ int main(int argc, char **argv)
     archdatalen=0;
     free(last_sent);
     if ((post ==1)&&(mysql==1)&&(error==0)){
-      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid);
+      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid, repost, datefrom, dateto);
     }
 
 }
-/*
-if ((repost ==1)&&(error==0)){
-    FILE* fp;
-    char buf[1024], buf1[400];
-    int	 update_data;
-
-    float dtotal, starttotal;
-    float power;
-  */  
-    /* Connect to database */
- //   OpenMySqlDatabase( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
-    //Get Start of day value
- /*   starttotal = 0;
-    sprintf(SQLQUERY,"SELECT DATE_FORMAT( dt1.DateTime, \"%%Y%%m%%d\" ), round((dt1.ETotalToday*1000-dt2.ETotalToday*1000),0) FROM DayData as dt1 join DayData as dt2 on dt2.DateTime = DATE_SUB( dt1.DateTime, interval 1 day ) WHERE dt1.DateTime LIKE \"%%-%%-%% 23:55:00\" ORDER BY dt1.DateTime DESC" );
-    if (debug == 1) printf("%s\n",SQLQUERY);
-    DoQuery(SQLQUERY);
-    while ((row = mysql_fetch_row(res)))  //if there is a result, update the row
-    {
-        fp=fopen( "/tmp/curl_output", "w+" );
-        update_data = 0;
-        dtotal = atof(row[1]);
-	ret=sprintf(compurl,"http://pvoutput.org/service/r1/getstatistic.jsp?df=%s&dt=%s&key=%s&sid=%s",row[0],row[0],conf.PVOutputKey,conf.PVOutputSid);
-        curl = curl_easy_init();
-        if (curl){
-	     curl_easy_setopt(curl, CURLOPT_URL, compurl);
-	     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-	     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-	     //curl_easy_setopt(curl, CURLOPT_FAILONERROR, compurl);
-	     result = curl_easy_perform(curl);
-             if (debug == 1) printf("result = %d\n",result);
-             rewind( fp );
-             fgets( buf, sizeof( buf ), fp );
-             result = sscanf( buf, "Bad request %s has no outputs between the requested period", buf1 );
-             printf( "return=%d buf1=%s\n", result, buf1 );
-             if( result > 0 )
-             {
-                 update_data=1;
-                 printf( "test\n" );
-             }
-             else
-             {
-                 printf( "buf=%s here\n", buf );
-                 if( sscanf( buf, "%f,%s", &power, buf1 ) > 0 ) {
-                    printf( "Power %f\n", power );
-                    if( power != dtotal )
-                    {
-                       printf( "Power %f Produced=%f\n", power, dtotal );
-                       update_data=1;
-                    }
-                 }
-             }
-	     curl_easy_cleanup(curl);
-             if( update_data == 1 ) {
-                 curl = curl_easy_init();
-                 if (curl){
-	            ret=sprintf(compurl,"http://pvoutput.org/service/r1/addoutput.jsp?d=%s&g=%f&key=%s&sid=%s",row[0],dtotal,conf.PVOutputKey,conf.PVOutputSid);
-                    if (debug == 1) printf("url = %s\n",compurl);
-		    curl_easy_setopt(curl, CURLOPT_URL, compurl);
-		    curl_easy_setopt(curl, CURLOPT_FAILONERROR, compurl);
-		    result = curl_easy_perform(curl);
-	            if (debug == 1) printf("result = %d\n",result);
-		    curl_easy_cleanup(curl);
-                    if( result==0 ) 
-                    {
-                        sprintf(SQLQUERY,"UPDATE DayData set PVOutput=NOW() WHERE DateTime=\"%s235500\"  ", row[0] );
-                        if (debug == 1) printf("%s\n",SQLQUERY);
-                        //DoQuery(SQLQUERY);
-                    }
-                    else
-                        break;
-                 }
-             }
-        }
-        fclose(fp);
-    }
-    mysql_close(conn);
-}
-*/
   db_close();
   return 0;
 }
