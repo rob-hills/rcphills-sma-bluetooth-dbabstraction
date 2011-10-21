@@ -19,3 +19,11 @@ CONFIGURATION NOTES
 DEV NOTES
 	smatool.c line 60: MySqlDatabase variable increased len from 20 to 80
 
+Some useful Command Line commands:
+
+The following will repost old values from 5am on 15 October 2011
+starttime="2011-10-15 05:00:00"
+endtime="2011-10-15 19:30:00"
+./smatool --debug -from "$starttime" -to "$endtime" -repost 2>&1 > ./temp-log.txt
+
+
