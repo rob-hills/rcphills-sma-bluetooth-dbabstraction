@@ -319,6 +319,30 @@ a[href] {
      It is called the &quot;System ID&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
      it should look something like this:</p>
   <code>PVOutputSid	9068</code>
+  <li><h2>Create your database</h2></li>
+  <p>The sma-bluetooth program needs a database to store values that it extracts from your inverter.  It will create the database for you if you type (copy/paste) the following into your terminal window:</p>
+  <code>smatool --INSTALL</code>
+  <li><h2>Test your setup</h2></li>
+  <p>The sma-bluetooth program should now be ready to roll. Test it by typing (copy/paste) the following into your terminal window.  These will upload all data so far for the current day (assuming it is daylight):</p>
+<code>
+starttime="$(date +%Y-%m-%d) 00:00:00"<br />
+endtime="$(date +'%Y-%m-%d %T')"<br />
+./smatool -from "$starttime" -to "$endtime" -repost 2>&1 | logger -t smatool -p local5.info
+</code>
+  <p>The program will log its progress (and any errors) to a file named "smatool.log" in the /var/log directory</p>
+  <li><h2>Automate your uploads</h2></li>
+  <p>You can use the Linux &quot;cron&quot; program to automate your data logging.  I have mine set up to post data every half hour so as not to keep harassing the Inverter.  I have included an example cron file with this html document, but you need to edit it before you can use it. Type (copy/paste) the following into your terminal window:</p>
+<code>gedit ./smatool.cron &amp;</code>
+  <p>When the file opens in your editor, look in the last line only for the text &quot;your-user-name&quot; which appears twice in that line.  Now replace it with your actual Ubuntu login name.</p>
+  <p>Now you can copy this file to the folder it needs to be in to do its job. Type (copy/paste) the following into your terminal window 
+     (when prompted for a password, enter your usual login password):</p>
+<code>
+sudo cp ./smatool.cron /etc/cron.d/smatool<br />
+sudo chmod +x /etc/cron.d/smatool<br />
+sudo chown root:root /etc/cron.d/smatool
+</code>
+<p>That's it!  Now, your smatool should run every half hour (on the hour and the half-hour), pull the latest data from your inverter, store it in your
+   database and then upload it to PVOutput.</p>
 </ol>
 </body>
 </html>
