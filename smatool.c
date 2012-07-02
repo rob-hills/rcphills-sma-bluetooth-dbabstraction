@@ -2184,7 +2184,7 @@ int main(int argc, char **argv)
                                     if( reporttime > idate ) {
                                        if( debug == 1 )
                                            printf( "delay=%ld\n", reporttime-idate );
-                                       sleep( reporttime - idate );
+                                       sleep( 5 );
                                     }
                                 }
                                 else
