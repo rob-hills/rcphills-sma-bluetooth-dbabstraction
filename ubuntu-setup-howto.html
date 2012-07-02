@@ -208,7 +208,7 @@ a[href] {
     <p>At the terminal prompt, type (or copy the following line and paste it
     into your terminal):</p>
     <p><code>sudo apt-get install sqlite3 libsqlite3-dev libbluetooth-dev
-    libcurl4-openssl-dev mercurial</code> </p>
+    libcurl4-openssl-dev mercurial make</code> </p>
     <p>You will probably be prompted for a password - use your usual Ubuntu
     password (or nothing if you don't have to log in to Ubuntu). Following
     this, you will see a series of programs downloaded and installed.</p>
@@ -304,7 +304,7 @@ a[href] {
      directory:</p>
   <code>MySqlDatabase&nbsp;&nbsp;~/smatool/smatool.sqlite3.db</code>
   <p><strong>Lines 27 and 28:</strong> Username and Password.  SQLite databases usually don't have usernames and passwords, however if you leave these empty,
-     the program won&nbsp;t work.  I simply put an &quot;x&quot; for each of them, like this:</p>
+     the program won&apos;t work.  I simply put an &quot;x&quot; for each of them, like this:</p>
   <code>MySqlUser x<br />
 &nbsp;&nbsp;&nbsp;MySqlPwd x</code>
   <p><strong>Lines 30 to 32:</strong> These contain the critical PVOutput configuration details:</p>
@@ -321,7 +321,7 @@ a[href] {
   <code>PVOutputSid	9068</code>
   <li><h2>Create your database</h2></li>
   <p>The sma-bluetooth program needs a database to store values that it extracts from your inverter.  It will create the database for you if you type (copy/paste) the following into your terminal window:</p>
-  <code>smatool --INSTALL</code>
+  <code>./smatool --INSTALL</code>
   <li><h2>Test your setup</h2></li>
   <p>The sma-bluetooth program should now be ready to roll. Test it by typing (copy/paste) the following into your terminal window.  These will upload all data so far for the current day (assuming it is daylight):</p>
 <code>
