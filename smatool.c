@@ -1392,11 +1392,12 @@ char * debugdate()
     return result;
 }
 
-int curl_post_this_query( char *compurl )
+int curl_post_this_query( char *compurl, char *pvOutputKey, char *pvOutputSid )
 {
   CURL *curl;
   CURLcode result;
   char *curlErrorText = (char*)malloc(CURL_ERROR_SIZE);
+  char header[255];
 
   curlErrorText[0] = '\0';
   curl = curl_easy_init();
@@ -1405,7 +1406,17 @@ int curl_post_this_query( char *compurl )
         printf("url = %s\n",compurl);
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorText);
     }
+
+    struct curl_slist *slist=NULL;
+
+    sprintf(header, "X-Pvoutput-Apikey: %s",pvOutputKey );
+    slist = curl_slist_append(slist, header);
+    sprintf(header, "X-Pvoutput-SystemId: %s",pvOutputSid );
+    slist = curl_slist_append(slist, header);
+
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
     curl_easy_setopt(curl, CURLOPT_URL, compurl);
+
     result = curl_easy_perform(curl);
     if (debug == 1){
         printf("result = %d\n",result);
@@ -1414,6 +1425,7 @@ int curl_post_this_query( char *compurl )
         printf("Unable to post data to PVOutput.  CURL result = %d\n",result);
         printf("Error message = %s\n",curlErrorText);
     }
+    curl_slist_free_all(slist);
     curl_easy_cleanup(curl);
     free(curlErrorText);
     return result;
@@ -1423,7 +1435,7 @@ int curl_post_this_query( char *compurl )
 
 void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid, int repost, char *datefrom, char *dateto)
 {
-  time_t prior = time(NULL) - ( 60 * 60 * 24 * 1 ); //up to 24 hours before now
+  time_t prior = time(NULL) - ( 60 * 60 * 24 * 14 ); //up to 14 days before now (r2 service)
   struct tm from_datetime = *(localtime( &prior ) );
   if (repost == 0) {
       from_datetime.tm_hour = 0;
@@ -1462,22 +1474,30 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
     if( 0 == rows_processed )
     {
 	    start_datetime = db_row_datetime_data( row, 0  );
-	    string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
+	    // r2 service - key and sid are sent as headers, not in the url
+	    // string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
+	    string_end = sprintf(posturl,"%s?data=",pvOutputSid);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
+    }
+    this_datetime = db_row_datetime_data( row, 0 );
+    if( start_datetime.tm_mday != this_datetime.tm_mday )
+    {
+      startOfDayWh = db_get_start_of_day_energy_value(&this_datetime);
     }
     string_end += sprintf( posturl + string_end ,"%s,%s,%ld,%s;", db_row_string_data(row,1), db_row_string_data(row,2), db_row_int_data(row,3) - startOfDayWh, db_row_string_data(row,4)  );
     rows_processed++;
-    this_datetime = db_row_datetime_data( row, 0  );
+
     more_rows = db_row_next( row ); //db_next_row returns 0 if we cannot move to next row in result set, 1 otherwise
-    if( 10 == rows_processed || 0 == more_rows  )
+    //r2 service - can process upto 30 rows at a time
+    if( 30 == rows_processed || 0 == more_rows  )
     {
       //if post requires last ; to be stripped... posturl[string_end] = '\0';
-      curlResult = curl_post_this_query(posturl);
+      curlResult = curl_post_this_query(posturl, pvOutputKey, pvOutputSid);
       if ( curlResult == 0 )
       {
-	  db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 10, values
-	  rows_processed = 0;
-	  sleep(2); //pvoutput api says we can't post more than once a second.
+	    db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 30, values
+	    rows_processed = 0;
+	    sleep(2); //pvoutput api says we can't post more than once a second.
       } else {
           printf("NOT sleeping after a post, CURL result was %d\n",curlResult);
       }
