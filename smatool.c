@@ -2391,5 +2391,8 @@ int main(int argc, char **argv)
 
 }
   db_close();
+  /* Clean up memory alloc. */
+  free(returnkeylist);
+
   return 0;
 }
