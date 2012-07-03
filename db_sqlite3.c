@@ -17,6 +17,7 @@
 
 #define _XOPEN_SOURCE
 
+#include "logging.h"
 #include "db_interface.h"
 #include <sqlite3.h>
 #include <stdio.h>
@@ -36,7 +37,8 @@ int sqlite_open( void )
   int result = sqlite3_open_v2(sqlite_dbfile, &dbHandle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL );
   if( result  != SQLITE_OK )
   {
-      fprintf(stderr, "Error opening sqlite3 db %s:%s\n", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
+      // fprintf(stderr, "Error opening sqlite3 db %s:%s\n", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
+      log_error( "Error opening sqlite3 db %s:%s", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
       dbHandle = NULL;
   }
   return result;
@@ -58,7 +60,8 @@ void db_close()
   int result = sqlite3_close( dbHandle );
   if( result  != SQLITE_OK  ) 
   {
-    fprintf(stderr, "Error closing sqlite3 db %s:%s\n", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
+    // fprintf(stderr, "Error closing sqlite3 db %s:%s\n", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
+    log_error("Error closing sqlite3 db %s:%s", sqlite_dbfile, sqlite3_errmsg(dbHandle) );
   }
   else dbHandle = NULL;
 }
@@ -69,7 +72,8 @@ int db_install_tables( void )
 {
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "Cannot install tables\n" );
+    // fprintf(stderr, "Cannot install tables\n" );
+    log_error( "Cannot install tables" );
     return -1;
   }
   const char *query_almanac = "CREATE TABLE Almanac( \
@@ -81,7 +85,8 @@ int db_install_tables( void )
   int result = sqlite3_exec( dbHandle, query_almanac, NULL, NULL, &error );
   if( error )
   {
-    fprintf(stderr, "%s\n", error );
+    // fprintf(stderr, "%s\n", error );
+    log_error( "%s", error );
     sqlite3_free( error );
     return -1;
   }
@@ -97,7 +102,8 @@ int db_install_tables( void )
   result = sqlite3_exec( dbHandle, query_daydata, NULL, NULL, &error );
   if( error )
   {
-    fprintf(stderr, "%s\n", error );
+    // fprintf(stderr, "%s\n", error );
+    log_error( "%s", error );
     sqlite3_free( error );
     return -1;
   }
@@ -108,7 +114,8 @@ int db_install_tables( void )
   result = sqlite3_exec( dbHandle, query_settings, NULL, NULL, &error );
   if( error )
   {
-    fprintf(stderr, "%s\n", error );
+    // fprintf(stderr, "%s\n", error );
+    log_error( "%s", error );
     sqlite3_free( error );
     return -1;
   }
@@ -117,7 +124,8 @@ int db_install_tables( void )
   result = sqlite3_exec( dbHandle, set_schema, NULL, NULL, &error );
   if( error )
   {
-    fprintf(stderr, "%s\n", error );
+    // fprintf(stderr, "%s\n", error );
+    log_error( "%s\n", error );
     sqlite3_free( error );
     return -1;
   }
@@ -129,7 +137,8 @@ int db_install_tables( void )
 int db_get_schema(){
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_get_schema error\n" );
+    // fprintf(stderr, "db_get_schema error\n" );
+    log_error( "db_get_schema error" );
     return -1;
   }
   
@@ -158,7 +167,8 @@ int db_fetch_almanac(struct tm *date, char * sunrise, char * sunset )
   int retval = -1;
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_fetch_almanac error\n" );
+    // fprintf(stderr, "db_fetch_almanac error\n" );
+    log_error( "db_fetch_almanac error" );
     return retval;
   }
   
@@ -166,7 +176,8 @@ int db_fetch_almanac(struct tm *date, char * sunrise, char * sunset )
   int result = sqlite3_prepare_v2( dbHandle, "SELECT Sunrise, Sunset FROM Almanac WHERE Date=?;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_fetch_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_fetch_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_fetch_almanac error: %s", sqlite3_errmsg( dbHandle) );
     return retval;
   }
   char chardate[25];
@@ -192,7 +203,8 @@ int db_update_almanac(struct tm *date, const char * sunrise, const char * sunset
 {
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_update_almanac error\n" );
+    // fprintf(stderr, "db_update_almanac error\n" );
+    log_error( "db_update_almanac error" );
     return 0;
   }
   
@@ -200,7 +212,8 @@ int db_update_almanac(struct tm *date, const char * sunrise, const char * sunset
   int result = sqlite3_prepare_v2( dbHandle, "REPLACE INTO Almanac(Date,Sunrise,Sunset) VALUES(?,?,?);", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_update_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_update_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_update_almanac error: %s", sqlite3_errmsg( dbHandle) );
     return 0;
   }
   
@@ -216,7 +229,8 @@ int db_update_almanac(struct tm *date, const char * sunrise, const char * sunset
     return 1;
   }
 
-  fprintf(stderr, "db_update_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+  // fprintf(stderr, "db_update_almanac error: %s\n", sqlite3_errmsg( dbHandle) );
+  log_error( "db_update_almanac error: %s", sqlite3_errmsg( dbHandle) );
   sqlite3_finalize( pStmt );
   return 0;  
 } 
@@ -232,7 +246,8 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
 
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_get_last_recorded_interval_datetime error\n" );
+    // fprintf(stderr, "db_get_last_recorded_interval_datetime error\n" );
+    log_error( "db_get_last_recorded_interval_datetime error" );
     return last_time;
   }
   
@@ -240,7 +255,8 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
   int result = sqlite3_prepare_v2( dbHandle, "SELECT MAX(DateTime) FROM DayData WHERE DateTime < date(?,'1 day') ;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_get_last_recorded_interval_datetime error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_get_last_recorded_interval_datetime error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_get_last_recorded_interval_datetime error: %s", sqlite3_errmsg( dbHandle) );
     return last_time;
   }
   char chardate[25];
@@ -273,7 +289,8 @@ int db_set_interval_value( struct tm *date, char *inverter, long unsigned int se
 {
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_set_interval_value error\n" );
+    // fprintf(stderr, "db_set_interval_value error\n" );
+    log_error( "db_set_interval_value error" );
     return 0;
   }
   
@@ -281,7 +298,8 @@ int db_set_interval_value( struct tm *date, char *inverter, long unsigned int se
   int result = sqlite3_prepare_v2( dbHandle, "REPLACE INTO DayData(DateTime, Inverter, Serial, CurrentPower, ETotalToday, Changetime) VALUES( ?, ?, ?, ?, ? /1000.0, datetime('now','localtime') );", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_set_interval_value error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_set_interval_value error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_set_interval_value error: %s", sqlite3_errmsg( dbHandle) );
     return 0;
   }
   char interval_datetime[25];
@@ -298,7 +316,8 @@ int db_set_interval_value( struct tm *date, char *inverter, long unsigned int se
     return 1;
   }
 
-  fprintf(stderr, "db_set_interval_value error: %s\n", sqlite3_errmsg( dbHandle) );
+  // fprintf(stderr, "db_set_interval_value error: %s\n", sqlite3_errmsg( dbHandle) );
+  log_error( "db_set_interval_value error: %s", sqlite3_errmsg( dbHandle) );
   sqlite3_finalize( pStmt );
   return 0;  
   
@@ -313,7 +332,8 @@ long db_get_start_of_day_energy_value( struct tm *day )
 {
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_get_start_of_day_energy_value error\n" );
+    // fprintf(stderr, "db_get_start_of_day_energy_value error\n" );
+    log_error( "db_get_start_of_day_energy_value error" );
     return 0;
   }
   long start_day_e = 0;
@@ -322,7 +342,8 @@ long db_get_start_of_day_energy_value( struct tm *day )
   int result = sqlite3_prepare_v2( dbHandle, "SELECT ETotalToday*1000 FROM DayData WHERE DateTime >= ? AND DateTime < date(?,'1 day') ORDER BY DateTime ASC;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_get_start_of_day_energy_value error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_get_start_of_day_energy_value error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_get_start_of_day_energy_value error: %s", sqlite3_errmsg( dbHandle) );
     return 0;
   }
   
@@ -350,7 +371,8 @@ int db_set_data_posted(struct tm *from_datetime, struct tm *to_datetime )
   int retval = 0;
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_set_data_posted error\n" );
+    // fprintf(stderr, "db_set_data_posted error\n" );
+    log_error( "db_set_data_posted error" );
     return 0;
   }
   
@@ -358,7 +380,8 @@ int db_set_data_posted(struct tm *from_datetime, struct tm *to_datetime )
   int result = sqlite3_prepare_v2( dbHandle, "UPDATE DayData SET PVOutput=datetime('now','localtime') WHERE DateTime >= ? AND DateTime <= ? ;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_set_data_posted error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_set_data_posted error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_set_data_posted error: %s", sqlite3_errmsg( dbHandle) );
     return 0;
   }
   char charfromdate[25];
@@ -391,7 +414,8 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
 {
   if( sqlite_open() != SQLITE_OK )
   {
-    fprintf(stderr, "db_get_unposted_data error\n" );
+    // fprintf(stderr, "db_get_unposted_data error\n" );
+    log_error( "db_get_unposted_data error" );
     return NULL;
   }
   
@@ -399,7 +423,8 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
   int result = sqlite3_prepare_v2( dbHandle, "SELECT Datetime, strftime('%Y%m%d',Datetime),strftime('%H:%M',Datetime), ETotalToday*1000, CurrentPower FROM DayData WHERE DateTime >= ? AND PVOutput IS NULL AND CurrentPower > 0 ORDER BY Datetime ASC ;", -1, &pStmt, NULL );
   if( NULL == pStmt )
   {
-    fprintf(stderr, "db_get_unposted_data error: %s\n", sqlite3_errmsg( dbHandle) );
+    // fprintf(stderr, "db_get_unposted_data error: %s\n", sqlite3_errmsg( dbHandle) );
+    log_error( "db_get_unposted_data error: %s", sqlite3_errmsg( dbHandle) );
     return NULL;
   }
   char charfromdate[25];
@@ -432,7 +457,7 @@ struct tm db_row_datetime_data( row_handle *row, int column_id )
 {
   char *stringdate;
   stringdate = db_row_string_data( row, column_id );
-// printf("\nstring date: %s\n",stringdate );
+// log_debug("string date: %s",stringdate );
   struct tm date;
   strptime( stringdate, "%Y-%m-%d %H:%M:%S", &date );
   return date;
