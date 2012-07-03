@@ -21,9 +21,14 @@ DEV NOTES
 
 Some useful Command Line commands:
 
-The following will repost old values from 5am on 15 October 2011
-starttime="2011-10-15 05:00:00"
-endtime="2011-10-15 19:30:00"
+The following will repost old values from 5am on 20 January 2012
+starttime="2012-01-20 05:00:00"
+endtime="2012-01-20 19:30:00"
 ./smatool --debug -from "$starttime" -to "$endtime" -repost 2>&1 > ./temp-log.txt
+or
+./smatool -from "$starttime" -to "$endtime" -repost 2>&1 | logger -t smatool -p local5.info
 
+or
+
+starttime="2012-02-21 05:00:00";endtime="2012-02-21 20:30:00";./smatool -from "$starttime" -to "$endtime" -repost 2>&1 | logger -t smatool -p local5.info
 
