@@ -1,10 +1,10 @@
 RM = rm
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -ggdb -Wall -pedantic -std=c99
 LIBS = -lbluetooth -lcurl -lm
 
 MAIN = smatool
-MAIN_OBJ = smatool.o
+MAIN_OBJS = hexdump.o sunlight.o smatool.o logging.o
 
 TEST = db_test
 TEST_OBJ = db_test.o
@@ -15,8 +15,10 @@ SQLITE_OBJ = db_sqlite3.o
 MYSQL_LIB = -lmysqlclient
 MYSQL_OBJ = db_mysql.o
 
-$(MAIN) : $(MYSQL_OBJ) $(MAIN_OBJ)
-	$(CC) $(LIBS) $(MYSQL_LIB) $(CFLAGS) -o $(MAIN) $(MAIN_OBJ) $(MYSQL_OBJ)
+HEADER=pvlogger.h logging.h
+
+$(MAIN) : $(MYSQL_OBJ) $(MAIN_OBJS)
+	$(CC) $(LIBS) $(MYSQL_LIB) $(CFLAGS) -o $(MAIN) $(MAIN_OBJS) $(MYSQL_OBJ)
 
 .c.o :
 	$(CC) $(CFLAGS) -c $<  -o $@
@@ -25,8 +27,8 @@ $(MAIN) : $(MYSQL_OBJ) $(MAIN_OBJ)
 clean:
 	$(RM) *.o  $(MAIN) $(TEST)
 
-sqlite : $(SQLITE_OBJ) $(MAIN_OBJ)
-	$(CC) $(CFLAGS) -o $(MAIN) $(MAIN_OBJ) $(SQLITE_OBJ) $(LIBS) $(SQLITE_LIB)
+sqlite : $(SQLITE_OBJ) $(MAIN_OBJS)
+	$(CC) $(CFLAGS) -o $(MAIN) $(MAIN_OBJS) $(SQLITE_OBJ) $(LIBS) $(SQLITE_LIB)
 
 test : $(MYSQL_OBJ) $(TEST_OBJ)
 	$(CC) $(LIBS) $(MYSQL_LIB) $(CFLAGS) -o $(TEST) $(MYSQL_OBJ) $(TEST_OBJ)
