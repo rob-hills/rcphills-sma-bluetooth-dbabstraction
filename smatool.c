@@ -65,6 +65,7 @@ typedef struct{
     char PVOutputURL[80];       /*--pvouturl    -url 	*/
     char PVOutputKey[80];       /*--pvoutkey    -key 	*/
     char PVOutputSid[20];       /*--pvoutsid    -sid 	*/
+    char Setting[80];           /*inverter model data*/
     unsigned char InverterCode[4]; /*Unknown code inverter specific*/
     unsigned int ArchiveCode;    /* Code for archive data */
 } ConfType;
@@ -641,12 +642,37 @@ int is_light( )
 //Set a value depending on inverter
 void  SetInverterType( ConfType * conf )  
 {
+if( strcmp(conf->Inverter, "1700TL") == 0 ) {
+        conf->InverterCode[0] = 0x12;
+        conf->InverterCode[1] = 0x1a;
+        conf->InverterCode[2] = 0xd9;
+        conf->InverterCode[3] = 0x38;
+        conf->ArchiveCode    = 0x63;
+    }
+    if( strcmp(conf->Inverter, "2100TL") == 0 ) {
+        conf->InverterCode[0] = 0x17;
+        conf->InverterCode[1] = 0x97;
+        conf->InverterCode[2] = 0x51;
+        conf->InverterCode[3] = 0x38;
+        conf->ArchiveCode    = 0x63;
+    }
     if( strcmp(conf->Inverter, "3000TL") == 0 ) {
         conf->InverterCode[0] = 0x12;
         conf->InverterCode[1] = 0x1a;
         conf->InverterCode[2] = 0xd9;
         conf->InverterCode[3] = 0x38;
+        conf->InverterCode[0] = 0x32;
+        conf->InverterCode[1] = 0x42;
+        conf->InverterCode[2] = 0x85;
+        conf->InverterCode[3] = 0x38;
         conf->ArchiveCode    = 0x71;
+    }
+    if( strcmp(conf->Inverter, "3000TLHF") == 0 ) {
+        conf->InverterCode[0] = 0x1b;
+        conf->InverterCode[1] = 0xb1;
+        conf->InverterCode[2] = 0xa6;
+        conf->InverterCode[3] = 0x38;
+        conf->ArchiveCode    = 0x83;
     }
     if( strcmp(conf->Inverter, "4000TL") == 0 ) {
         conf->InverterCode[0] = 0x78;
@@ -662,12 +688,26 @@ void  SetInverterType( ConfType * conf )
         conf->InverterCode[3] = 0x39;
         conf->ArchiveCode     = 0x4e;
     }
+    if( strcmp(conf->Inverter, "7000") == 0 ) {
+        conf->InverterCode[0] = 0xcf;
+        conf->InverterCode[1] = 0x84;
+        conf->InverterCode[2] = 0x84;
+        conf->InverterCode[3] = 0x3a;
+        conf->ArchiveCode     = 0x63;
+    }
     if( strcmp(conf->Inverter, "10000TL") == 0 ) {
         conf->InverterCode[0] = 0x69;
         conf->InverterCode[1] = 0x45;
         conf->InverterCode[2] = 0x32;
         conf->InverterCode[3] = 0x39;
         conf->ArchiveCode     = 0x80;
+    }
+    if( strcmp(conf->Inverter, "XXXXTL") == 0 ) {
+        conf->InverterCode[0] = 0x99;
+        conf->InverterCode[1] = 0x35;
+        conf->InverterCode[2] = 0x40;
+        conf->InverterCode[3] = 0x36;
+        conf->ArchiveCode     = 0x4e;
     }
 }
 //Convert a recieved string to a value
@@ -896,9 +936,10 @@ ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, u
 void InitConfig( ConfType *conf, char * datefrom, char * dateto )
 {
     strcpy( conf->Config,"./smatool.conf");
+    strcpy( conf->Setting,"./invcode.in");
     strcpy( conf->Inverter, "" );  
     strcpy( conf->BTAddress, "" );  
-    conf->bt_timeout = 5;  
+    conf->bt_timeout = 30;  
     strcpy( conf->Password, "0000" );  
     strcpy( conf->File, "sma.in.new" );  
     conf->latitude_f = 999 ;  
@@ -907,9 +948,14 @@ void InitConfig( ConfType *conf, char * datefrom, char * dateto )
     strcpy( conf->MySqlDatabase, "smatool" );  
     strcpy( conf->MySqlUser, "" );  
     strcpy( conf->MySqlPwd, "" );  
-    strcpy( conf->PVOutputURL, "http://pvoutput.org/service/r1/addstatus.jsp" );  
+    strcpy( conf->PVOutputURL, "http://pvoutput.org/service/r2/addstatus.jsp" );  
     strcpy( conf->PVOutputKey, "" );  
-    strcpy( conf->PVOutputSid, "" );  
+    strcpy( conf->PVOutputSid, "" );
+    conf->InverterCode[0]=0;
+    conf->InverterCode[1]=0;
+    conf->InverterCode[2]=0;
+    conf->InverterCode[3]=0;
+    conf->ArchiveCode=0;
     strcpy( datefrom, "" );  
     strcpy( dateto, "" );  
 }
@@ -982,6 +1028,78 @@ int GetConfig( ConfType *conf )
     fclose( fp );
     return( 0 );
 }
+
+/* read  Inverter Settings from file */
+int GetInverterSetting( ConfType *conf )
+{
+    FILE        *fp;
+    char        line[400];
+    char        variable[400];
+    char        value[400];
+    int         found_inverter=0;
+
+    if (strlen(conf->Setting) > 0 )
+    {
+        if(( fp=fopen(conf->Setting,"r")) == (FILE *)NULL )
+        {
+           printf( "Error! Could not open file %s\n", conf->Setting );
+           return( -1 ); //Could not open file
+        }
+    }
+    else
+    {
+        if(( fp=fopen("./invcode.in","r")) == (FILE *)NULL )
+        {
+           printf( "Error! Could not open file ./invcode.in\n" );
+           return( -1 ); //Could not open file
+        }
+    }
+    while (!feof(fp)){  
+        if (fgets(line,400,fp) != NULL){                                //read line from smatool.conf
+            if( line[0] != '#' ) 
+            {
+                strcpy( value, "" ); //Null out value
+                sscanf( line, "%s %s", variable, value );
+                if( debug == 1 ) printf( "variable=%s value=%s\n", variable, value );
+                if( value[0] != '\0' )
+                {
+                    if( strcmp( variable, "Inverter" ) == 0 )
+                    {
+                       if( strcmp( value, conf->Inverter ) == 0 )
+                          found_inverter = 1;
+                       else
+                          found_inverter = 0;
+                    }
+                    if(( strcmp( variable, "Code1" ) == 0 )&& found_inverter )
+                    {
+                       sscanf( value, "%X", &conf->InverterCode[0] );
+                    }
+                    if(( strcmp( variable, "Code2" ) == 0 )&& found_inverter )
+                       sscanf( value, "%X", &conf->InverterCode[1] );
+                    if(( strcmp( variable, "Code3" ) == 0 )&& found_inverter )
+                       sscanf( value, "%X", &conf->InverterCode[2] );
+                    if(( strcmp( variable, "Code4" ) == 0 )&& found_inverter )
+                       sscanf( value, "%X", &conf->InverterCode[3] );
+                    if(( strcmp( variable, "InvCode" ) == 0 )&& found_inverter )
+                       sscanf( value, "%X", &conf->ArchiveCode );
+                }
+            }
+        }
+    }
+    fclose( fp );
+    if(( conf->InverterCode[0] == 0 ) ||
+       ( conf->InverterCode[1] == 0 ) ||
+       ( conf->InverterCode[2] == 0 ) ||
+       ( conf->InverterCode[3] == 0 ) ||
+       ( conf->ArchiveCode == 0 ))
+    {
+       log_error( " Error ! not all codes set" );
+       fclose( fp );
+       return( -1 );
+    }
+    return( 0 );
+}
+
 
 /* Print a help message */
 void PrintHelp()
@@ -1390,6 +1508,9 @@ int main(int argc, char **argv)
     // read command arguments needed so can get config
     if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, &repost, &test, &install, &update ) < 0 )
         exit(0);
+    // read Inverter Setting file
+    if( GetInverterSetting( &conf ) < 0 )
+        exit(-1);
     // read Config file
     if( GetConfig( &conf ) < 0 )
         exit(-1);
@@ -1426,7 +1547,7 @@ int main(int argc, char **argv)
        }
     }
     // Set value for inverter type
-    SetInverterType( &conf );
+    // SetInverterType( &conf );
     // Get Return Value lookup from file
     returnkeylist = InitReturnKeys( &conf, returnkeylist, &num_return_keys );
     // Get Local Timezone offset in seconds
@@ -1455,28 +1576,27 @@ int main(int argc, char **argv)
     {
 	log_verbose( "Address %s",conf.BTAddress );
 
-        if (file ==1)
+    if (file ==1)
 	  fp=fopen(conf.File,"r");
-        else
+    else
 	  fp=fopen("/etc/sma.in","r");
-	// allocate a socket
-   s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-   if( s < 0 ) {
-      log_error("Error creating socket. Errno=%i. %s", errno, strerror( errno ) );
-     
-  }
-   // set the connection parameters (who to connect to)
-   addr.rc_family = AF_BLUETOOTH;
-   addr.rc_channel = (uint8_t) 1;
-   str2ba( conf.BTAddress, &addr.rc_bdaddr );
+	for( i=1; i<20; i++ ){
+	    // allocate a socket
+        s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 
-   // connect to server
-   log_debug( "datefrom=%s dateto=%s", datefrom, dateto );
-   for( i=1; i<5; i++ ){
-      status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
-	if (status <0){
-		log_error( "Error connecting to %s. Errno=%i. %s",conf.BTAddress, errno, strerror( errno ) );
-	}
+        // set the connection parameters (who to connect to)
+        addr.rc_family = AF_BLUETOOTH;
+        addr.rc_channel = (uint8_t) 1;
+        str2ba( conf.BTAddress, &addr.rc_bdaddr );
+
+        // connect to server
+        log_debug( "datefrom=%s dateto=%s", datefrom, dateto );
+        status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
+
+        if (status <0){
+	        log_error( "Error connecting to %s. Errno=%i. %s",conf.BTAddress, errno, strerror( errno ) );
+	        close( s );
+        }
         else
            break;
    }
@@ -1565,7 +1685,7 @@ int main(int argc, char **argv)
                     strcpy( lineread, "" );
                     sleep(10);
                     failedbluetooth++;
-                    if( failedbluetooth > 3 )
+                    if( failedbluetooth > 60 )
                         exit(-1);
                     goto start;
                 }
