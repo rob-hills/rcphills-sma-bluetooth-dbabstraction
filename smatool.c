@@ -290,8 +290,6 @@ void fix_length_received(unsigned char *received, int *len)
 void tryfcs16(unsigned char *cp, int len)
 {
     u16 trialfcs;
-    unsigned
-    int i;	 
     unsigned char stripped[1024] = { 0 };
 
     memcpy( stripped, cp, len );
@@ -356,7 +354,7 @@ unsigned char conv(char *nn){
 int
 check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int cc, unsigned char *last_sent, int *terminated, int *already_read )
 {
-    int bytes_read,i,j;
+    int bytes_read,i;
     unsigned char buf[1024]; /*read buffer*/
     unsigned char header[3]; /*read buffer*/
     struct timeval tv;
@@ -446,7 +444,7 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
 int
 read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int cc, unsigned char *last_sent, int *terminated )
 {
-    int bytes_read,i,j;
+    int bytes_read,i;
     unsigned char buf[1024]; /*read buffer*/
     unsigned char header[3]; /*read buffer*/
     struct timeval tv;
@@ -592,7 +590,6 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
 /*  If there are no dates set - get last updated date and go from there to NOW */
 {
     time_t  	curtime;
-    int 	day,month,year,hour,minute,second;
     struct tm 	loctime;
     curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
     loctime = *(localtime(&curtime));
@@ -626,7 +623,6 @@ int is_light( )
   char sunrise[25];
   char sunset[25];
   char timestring[25];
-  char sunset_today[25];
   time_t timenow = time(NULL);
   struct tm now = *(localtime( &timenow ) );
   if(! db_fetch_almanac( &now,  sunrise,  sunset ) )
@@ -1042,7 +1038,7 @@ int GetInverterSetting( ConfType *conf )
     {
         if(( fp=fopen(conf->Setting,"r")) == (FILE *)NULL )
         {
-           printf( "Error! Could not open file %s\n", conf->Setting );
+           log_fatal( "Error! Could not open file %s", conf->Setting );
            return( -1 ); //Could not open file
         }
     }
@@ -1050,7 +1046,7 @@ int GetInverterSetting( ConfType *conf )
     {
         if(( fp=fopen("./invcode.in","r")) == (FILE *)NULL )
         {
-           printf( "Error! Could not open file ./invcode.in\n" );
+           log_fatal( "Error! Could not open file ./invcode.in" );
            return( -1 ); //Could not open file
         }
     }
@@ -1060,14 +1056,16 @@ int GetInverterSetting( ConfType *conf )
             {
                 strcpy( value, "" ); //Null out value
                 sscanf( line, "%s %s", variable, value );
-                if( debug == 1 ) printf( "variable=%s value=%s\n", variable, value );
+                log_debug( "variable=%s value=%s", variable, value );
                 if( value[0] != '\0' )
                 {
                     if( strcmp( variable, "Inverter" ) == 0 )
                     {
-                       if( strcmp( value, conf->Inverter ) == 0 )
+                       if( strcmp( value, conf->Inverter ) == 0 ) 
+                       {
                           found_inverter = 1;
-                       else
+                          log_debug( "Found inverter: %s", conf->Inverter );
+                       } else
                           found_inverter = 0;
                     }
                     if(( strcmp( variable, "Code1" ) == 0 )&& found_inverter )
@@ -1086,6 +1084,8 @@ int GetInverterSetting( ConfType *conf )
             }
         }
     }
+    if ( found_inverter == 0 )
+        log_error ( " Could not locate your inverter [%s] in invcode.in", conf->Inverter );
     fclose( fp );
     if(( conf->InverterCode[0] == 0 ) ||
        ( conf->InverterCode[1] == 0 ) ||
@@ -1094,6 +1094,8 @@ int GetInverterSetting( ConfType *conf )
        ( conf->ArchiveCode == 0 ))
     {
        log_error( " Error ! not all codes set" );
+       log_error( " Code [0]: %d, Code[1]: %d, Code[2]: %d, Code[3]: %d, ArchiveCode: %d", 
+                    conf->InverterCode[0], conf->InverterCode[1], conf->InverterCode[2], conf->InverterCode[3], conf->ArchiveCode );
        fclose( fp );
        return( -1 );
     }
@@ -1388,7 +1390,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
 	    start_datetime = db_row_datetime_data( row, 0  );
 	    // r2 service - key and sid are sent as headers, not in the url
 	    // string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
-	    string_end = sprintf(posturl,"%s?data=",pvOutputSid);
+	    string_end = sprintf(posturl,"%s?data=",pvOutputUrl);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
     }
     this_datetime = db_row_datetime_data( row, 0 );
@@ -1423,77 +1425,72 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
 
 int main(int argc, char **argv)
 {
-	FILE *fp;
-        unsigned char * last_sent;
-        ConfType conf;
-        ReturnType *returnkeylist = NULL;
-        int num_return_keys=0;
-	struct sockaddr_rc addr = { 0 };
-	unsigned char received[1024];
-	unsigned char datarecord[1024];
-	unsigned char * data;
-	unsigned char send_count = 0x0;
-        int return_key;
-        int gap=1;
-        int datalen = 0;
-        int archdatalen=0;
-        int failedbluetooth=0;
-        int terminated=0;
-	int s,i,j,status,mysql=0,post=0,repost=0,test=0,file=0,daterange=0;
-        int install=0, update=0, already_read=0;
-        int location=0, error=0;
-	int ret,found,crc_at_end=0, finished=0;
-        int togo=0;
-        int  initstarted=0,setupstarted=0,rangedatastarted=0;
-        long returnpos;
-        int returnline;
-        char compurl[400];  //seg error on curl fix 2012.01.14
-	char datefrom[100];
-	char dateto[100];
-        int  pass_i;
-	char line[400];
-	unsigned char address[6] = { 0 };
-	unsigned char address2[6] = { 0 };
-	unsigned char timestr[25] = { 0 };
-	unsigned char serial[4] = { 0 };
-	unsigned char tzhex[2] = { 0 };
-	unsigned char timeset[4] = { 0x30,0xfe,0x7e,0x00 };
-        int  invcode;
-	char *lineread;
-	time_t curtime;
-	time_t reporttime;
-	time_t fromtime;
-	time_t totime;
-	time_t idate;
-	time_t prev_idate;
-	struct tm *loctime;
-	struct tm tm;
-	int day,month,year,hour,minute,second,datapoint;
-	char tt[10] = {48,48,48,48,48,48,48,48,48,48}; 
-	char ti[3];	
-	char chan[1];
-	float currentpower_total;
-        int   rr;
-	int linenum = 0;
-	float dtotal;
-	float gtotal;
-	float ptotal;
-	float strength;
-	char SQLQUERY[200];
-   struct archdata_type
-   {
-      time_t date;
-      char   inverter[20];
-      long unsigned int serial;
-      long  accum_value;
-      long  current_value;
-   } *archdatalist;
+    FILE *fp;
+    unsigned char * last_sent;
+    ConfType conf;
+    ReturnType *returnkeylist = NULL;
+    int num_return_keys=0;
+    struct sockaddr_rc addr = { 0 };
+    unsigned char received[1024];
+    unsigned char datarecord[1024];
+    unsigned char * data;
+    unsigned char send_count = 0x0;
+    int return_key;
+    int gap=1;
+    int datalen = 0;
+    int archdatalen=0;
+    int failedbluetooth=0;
+    int terminated=0;
+    int s,i,j,status,mysql=0,post=0,repost=0,test=0,file=0,daterange=0;
+    int install=0, update=0, already_read=0;
+    int location=0, error=0;
+    int found,crc_at_end=0, finished=0;
+    int togo=0;
+    int  initstarted=0,setupstarted=0,rangedatastarted=0;
+    long returnpos;
+    int returnline;
+    char datefrom[100];
+    char dateto[100];
+    int  pass_i;
+    char line[400];
+    unsigned char address[6] = { 0 };
+    unsigned char address2[6] = { 0 };
+    unsigned char timestr[25] = { 0 };
+    unsigned char serial[4] = { 0 };
+    unsigned char tzhex[2] = { 0 };
+    unsigned char timeset[4] = { 0x30,0xfe,0x7e,0x00 };
+    int  invcode;
+    char *lineread;
+    time_t curtime;
+    time_t reporttime;
+    time_t fromtime;
+    time_t totime;
+    time_t idate;
+    time_t prev_idate;
+    struct tm *loctime;
+    struct tm tm;
+    int day,month,year,hour,minute,second;
+    char tt[10] = {48,48,48,48,48,48,48,48,48,48}; 
+    char ti[3];	
+    char chan[1];
+    float currentpower_total;
+    int   rr;
+    int linenum = 0;
+    float dtotal;
+    float gtotal;
+    float ptotal;
+    float strength;
+    struct archdata_type
+    {
+        time_t date;
+        char   inverter[20];
+        long unsigned int serial;
+        long  accum_value;
+        long  current_value;
+    } *archdatalist;
 
     char sunrise_time[6],sunset_time[6];
    
-    CURL *curl;
-    CURLcode result;
-
     log_init();
     logging_set_loglevel(logger, ll_trace);
     log_info("Starting pvlogger");
@@ -1508,15 +1505,15 @@ int main(int argc, char **argv)
     // read command arguments needed so can get config
     if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, &repost, &test, &install, &update ) < 0 )
         exit(0);
-    // read Inverter Setting file
-    if( GetInverterSetting( &conf ) < 0 )
-        exit(-1);
     // read Config file
     if( GetConfig( &conf ) < 0 )
         exit(-1);
     // read command arguments  again - they overide config
     if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, &repost, &test, &install, &update ) < 0 )
         exit(0);
+    // read Inverter Setting file
+    if( GetInverterSetting( &conf ) < 0 )
+        exit(-1);
     // set switches used through the program
     SetSwitches( &conf, datefrom, dateto, &location, &mysql, &post, &file, &daterange, &test );  
     
@@ -2284,7 +2281,7 @@ int main(int argc, char **argv)
                    rangedatastarted=1;
                    returnpos=ftell(fp);
 		   returnline = linenum;
-                }
+        }
 	}
     }
 
