@@ -1050,8 +1050,8 @@ int GetInverterSetting( ConfType *conf )
            return( -1 ); //Could not open file
         }
     }
-    while (!feof(fp)){  
-        if (fgets(line,400,fp) != NULL){                                //read line from smatool.conf
+    while (!feof(fp)) {
+        if (fgets(line,400,fp) != NULL){                                //read line from invcode.in
             if( line[0] != '#' ) 
             {
                 strcpy( value, "" ); //Null out value
@@ -1061,12 +1061,14 @@ int GetInverterSetting( ConfType *conf )
                 {
                     if( strcmp( variable, "Inverter" ) == 0 )
                     {
-                       if( strcmp( value, conf->Inverter ) == 0 ) 
-                       {
-                          found_inverter = 1;
-                          log_debug( "Found inverter: %s", conf->Inverter );
-                       } else
-                          found_inverter = 0;
+                        if ( found_inverter )
+                            break; // Already found our inverter previously, this is a new inverter so no need to process further
+                        if( strcmp( value, conf->Inverter ) == 0 ) 
+                        {
+                            found_inverter = 1;
+                            log_debug( "Found inverter: %s", conf->Inverter );
+                        } else
+                            found_inverter = 0;
                     }
                     if(( strcmp( variable, "Code1" ) == 0 )&& found_inverter )
                     {
@@ -1084,8 +1086,9 @@ int GetInverterSetting( ConfType *conf )
             }
         }
     }
-    if ( found_inverter == 0 )
+    if ( !found_inverter )
         log_error ( " Could not locate your inverter [%s] in invcode.in", conf->Inverter );
+
     fclose( fp );
     if(( conf->InverterCode[0] == 0 ) ||
        ( conf->InverterCode[1] == 0 ) ||
