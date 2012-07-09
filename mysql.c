@@ -18,9 +18,10 @@ void OpenMySqlDatabase (char *server, char *user, char *password, char *database
    /* Connect to database */
    if (!mysql_real_connect(conn, server,
          user, password, database, 0, NULL, 0)) {
-      fprintf(stderr, "%s\n", mysql_error(conn));
-      exit(0);
+      log_fatal("%s", mysql_error(conn));
+      exit(1);
    }
+   log_debug("Successfully connected to database.");
 }
 
 void CloseMySqlDatabase()
