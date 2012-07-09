@@ -16,8 +16,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-/* compile gcc -lbluetooth -lcurl -lmysqlclient -g -o smatool smatool.c */
-
 #define _XOPEN_SOURCE /*for strptime, before the includes */
 
 #include "pvlogger.h"
