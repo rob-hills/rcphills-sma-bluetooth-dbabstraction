@@ -54,17 +54,17 @@ typedef struct{
     char Password[20];              /*--password     -p     */
     char Config[80];                /*--config       -c     */
     char File[80];                  /*--file         -f     */
-    float latitude_f;               /*--latitude      -la     */
-    float longitude_f;              /*--longitude     -lo     */
-    char MySqlHost[40];             /*--mysqlhost   -h     */
-    char MySqlDatabase[80];         /*--mysqldb     -d     */
-    char MySqlUser[80];             /*--mysqluser   -user     */
-    char MySqlPwd[80];              /*--mysqlpwd    -pwd     */
-    char PVOutputURL[80];           /*--pvouturl    -url     */
-    char PVOutputKey[80];           /*--pvoutkey    -key     */
-    char PVOutputSid[20];           /*--pvoutsid    -sid     */
-    char Setting[80];               /*inverter model data*/
-    unsigned char InverterCode[4];  /*Unknown code inverter specific*/
+    float latitude_f;               /*--latitude     -la    */
+    float longitude_f;              /*--longitude    -lo    */
+    char MySqlHost[40];             /*--mysqlhost    -h     */
+    char MySqlDatabase[80];         /*--mysqldb      -d     */
+    char MySqlUser[80];             /*--mysqluser    -user  */
+    char MySqlPwd[80];              /*--mysqlpwd     -pwd   */
+    char PVOutputURL[80];           /*--pvouturl     -url   */
+    char PVOutputKey[80];           /*--pvoutkey     -key   */
+    char PVOutputSid[20];           /*--pvoutsid     -sid   */
+    char Setting[80];               /* inverter model data  */
+    unsigned char InverterCode[4];  /* Unknown code inverter specific*/
     unsigned int ArchiveCode;       /* Code for archive data */
 } ConfType;
 
@@ -108,6 +108,7 @@ char *accepted_strings[] = {
 };
 
 int cc,debug = 0,verbose=0;
+loglevel_t log_level = ll_trace;  /* Start with most detailed */
 int skip_daylight_check = 0;
 unsigned char fl[1024] = { 0 };
 
@@ -868,6 +869,7 @@ ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, u
 /* Init Config to default values */
 void InitConfig( ConfType *conf, char * datefrom, char * dateto )
 {
+    log_trace ("Starting InitConfig");
     strcpy( conf->Config,"./smatool.conf");
     strcpy( conf->Setting,"./invcode.in");
     strcpy( conf->Inverter, "" );  
@@ -891,6 +893,7 @@ void InitConfig( ConfType *conf, char * datefrom, char * dateto )
     conf->ArchiveCode=0;
     strcpy( datefrom, "" );  
     strcpy( dateto, "" );  
+    log_trace ("Finished InitConfig");
 }
 
 /* read Config from file */
@@ -1101,7 +1104,7 @@ void PrintHelp()
 /* Init Config to default values */
 int ReadCommandConfig( ConfType *conf, int argc, char **argv, char *datefrom, 
                         char *dateto, int *verbose, int *debug, int *skip_daylight_check, 
-                        int *repost, int *test, int *install, int *update )
+                        int *repost, int *test, int *install, int *update, loglevel_t *log_level )
 {
     int    i;
 
@@ -1234,6 +1237,25 @@ int ReadCommandConfig( ConfType *conf, int argc, char **argv, char *datefrom,
             return( -1 );
         }
     }
+
+    /* Set the log level, "info" if none specified */
+    char log_level_text[10];
+    strcpy(log_level_text, "TRACE");
+    if ((*verbose) == 1) {
+        (*log_level) = ll_verbose;
+        strcpy(log_level_text, "VERBOSE");
+    }
+    else if ((*debug) == 1) {
+        (*log_level) = ll_debug;
+        strcpy(log_level_text, "DEBUG");
+    }
+    else {
+        (*log_level) = ll_info;
+        strcpy(log_level_text, "INFO");
+    }
+
+    log_info ( "Log Level set to [%s]", log_level_text );
+
     return( 0 );
 }
 
@@ -1446,7 +1468,7 @@ int main(int argc, char **argv)
     char sunrise_time[6],sunset_time[6];
    
     log_init();
-    logging_set_loglevel(logger, ll_trace);
+    logging_set_loglevel(logger, log_level);
     log_info("Starting pvlogger");
 
     memset(received,0,1024);
@@ -1458,15 +1480,18 @@ int main(int argc, char **argv)
     InitConfig( &conf, datefrom, dateto );
     // read command arguments needed so can get config
     if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
-            &skip_daylight_check, &repost, &test, &install, &update ) < 0 )
+            &skip_daylight_check, &repost, &test, &install, &update, &log_level ) < 0 )
         exit(0);
     // read Config file
     if( GetConfig( &conf ) < 0 )
         exit(-1);
     // read command arguments  again - they overide config
     if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
-            &skip_daylight_check, &repost, &test, &install, &update ) < 0 )
+            &skip_daylight_check, &repost, &test, &install, &update, &log_level ) < 0 )
         exit(0);
+    // Log level may have been reset by command line.
+    logging_set_loglevel(logger, log_level);
+
     // read Inverter Setting file
     if( GetInverterSetting( &conf ) < 0 )
         exit(-1);
