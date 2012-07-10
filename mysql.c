@@ -4,16 +4,16 @@
 #include <string.h>
 
 
-MYSQL *conn;
-MYSQL_RES *res;
-MYSQL_RES *res1;
-MYSQL_RES *res2;
+MYSQL *conn = 0;
 
 
 void OpenMySqlDatabase (char *server, char *user, char *password, char *database)
 {
-   
-	
+	if(conn!=0) {
+	    log_fatal("Trying to open database connection but is already open.");
+	    abort();
+	}
+
 	conn = mysql_init(NULL);
    /* Connect to database */
    if (!mysql_real_connect(conn, server,
@@ -26,39 +26,27 @@ void OpenMySqlDatabase (char *server, char *user, char *password, char *database
 
 void CloseMySqlDatabase()
 {
-   /* Release memory used to store results and close connection */
-   mysql_free_result(res);
-   mysql_free_result(res1);
-   mysql_free_result(res2);
+   log_debug("Closing database connection.");
    mysql_close(conn);
+   conn = 0;
 }
 
-int DoQuery (char query[1000]){
+MYSQL_RES * DoQuery (char const * const query){
 	/* execute query */
-	
-	if (mysql_real_query(conn, query, strlen(query))){
-		fprintf(stderr, "%s\n", mysql_error(conn));
+	if (mysql_real_query(conn, query, strlen(query))) {
+	    log_error("Error in query [%s]", mysql_error(conn));
+	    exit(1);
 	}
-	res = mysql_store_result(conn);
-	return *mysql_error(conn);
+	MYSQL_RES * res = mysql_store_result(conn);
+	if (res==0) {
+	    log_error("Error in get result [%s]", mysql_error(conn));
+	    exit(1);
+	}
+	return res;
 }
 
-int DoQuery1 (char query[1000]){
-	/* execute query */
-	
-	if (mysql_real_query(conn, query, strlen(query))){
-		fprintf(stderr, "%s\n", mysql_error(conn));
-	}
-	res1 = mysql_store_result(conn);
-	return *mysql_error(conn);
+void DoQueryNoRes (char const * const query) {
+    MYSQL_RES * res = DoQuery(query);
+    mysql_free_result(res);
 }
 
-int DoQuery2 (char query[1000]){
-	/* execute query */
-	
-	if (mysql_real_query(conn, query, strlen(query))){
-		fprintf(stderr, "%s\n", mysql_error(conn));
-	}
-	res2 = mysql_store_result(conn);
-	return *mysql_error(conn);
-}
