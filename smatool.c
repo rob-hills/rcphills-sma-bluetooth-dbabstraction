@@ -733,7 +733,12 @@ InitReturnKeys( ConfType * conf, ReturnType * returnkeylist, int * num_return_ke
             }
         }
     }
-    fclose(fp);
+    if(fp) {
+        /* This is a hack:
+         * It is not clean when the file is really used...
+         */
+        fclose(fp);
+    }
    
     return returnkeylist;
 }
@@ -1355,7 +1360,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
 
 int main(int argc, char **argv)
 {
-    FILE *fp;
+    FILE *fp = 0;
     unsigned char * last_sent;
     ConfType conf;
     ReturnType *returnkeylist = NULL;
@@ -1376,9 +1381,9 @@ int main(int argc, char **argv)
     int location=0, error=0;
     int found,crc_at_end=0, finished=0;
     int togo=0;
-    int  initstarted=0,setupstarted=0,rangedatastarted=0;
+    int initstarted=0,setupstarted=0,rangedatastarted=0;
     long returnpos;
-    int returnline;
+    int  returnline;
     char datefrom[100];
     char dateto[100];
     int  pass_i;
