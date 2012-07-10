@@ -48,32 +48,32 @@ typedef u_int16_t u16;
 
 
 typedef struct{
-    char Inverter[20]; 		    /*--inverter 	-i 	*/
-    char BTAddress[20];         /*--address  	-a 	*/
-    int  bt_timeout;		    /*--timeout  	-t 	*/
-    char Password[20];          /*--password 	-p 	*/
-    char Config[80];            /*--config   	-c 	*/
-    char File[80];              /*--file     	-f 	*/
-    float latitude_f;           /*--latitude  	-la 	*/
-    float longitude_f;          /*--longitude 	-lo 	*/
-    char MySqlHost[40];         /*--mysqlhost   -h 	*/
-    char MySqlDatabase[80];     /*--mysqldb     -d 	*/
-    char MySqlUser[80];         /*--mysqluser   -user 	*/
-    char MySqlPwd[80];          /*--mysqlpwd    -pwd 	*/
-    char PVOutputURL[80];       /*--pvouturl    -url 	*/
-    char PVOutputKey[80];       /*--pvoutkey    -key 	*/
-    char PVOutputSid[20];       /*--pvoutsid    -sid 	*/
+    char Inverter[20];             /*--inverter     -i     */
+    char BTAddress[20];         /*--address      -a     */
+    int  bt_timeout;            /*--timeout      -t     */
+    char Password[20];          /*--password     -p     */
+    char Config[80];            /*--config       -c     */
+    char File[80];              /*--file         -f     */
+    float latitude_f;           /*--latitude      -la     */
+    float longitude_f;          /*--longitude     -lo     */
+    char MySqlHost[40];         /*--mysqlhost   -h     */
+    char MySqlDatabase[80];     /*--mysqldb     -d     */
+    char MySqlUser[80];         /*--mysqluser   -user     */
+    char MySqlPwd[80];          /*--mysqlpwd    -pwd     */
+    char PVOutputURL[80];       /*--pvouturl    -url     */
+    char PVOutputKey[80];       /*--pvoutkey    -key     */
+    char PVOutputSid[20];       /*--pvoutsid    -sid     */
     char Setting[80];           /*inverter model data*/
     unsigned char InverterCode[4]; /*Unknown code inverter specific*/
     unsigned int ArchiveCode;    /* Code for archive data */
 } ConfType;
 
 typedef struct{
-    unsigned int 	key1;
-    unsigned int 	key2;
-    char		description[20];
-    char		units[20];
-    float		divisor;
+    unsigned int     key1;
+    unsigned int     key2;
+    char        description[20];
+    char        units[20];
+    float        divisor;
 } ReturnType;
 
 char *accepted_strings[] = {
@@ -207,7 +207,7 @@ void add_escapes(unsigned char *cp, int *len)
  */
 void fix_length_send(unsigned char *cp, int *len)
 {
-    int	    delta=0;
+    int        delta=0;
 
     log_debug("sum [%x]", cp[1]+cp[3]);
 
@@ -260,8 +260,8 @@ void fix_length_send(unsigned char *cp, int *len)
  */
 void fix_length_received(unsigned char *received, int *len)
 {
-    int	    delta=0;
-    int	    sum;
+    int        delta=0;
+    int        sum;
 
     if( received[1] != (*len) )
     {
@@ -304,49 +304,49 @@ void tryfcs16(unsigned char *cp, int len)
 
 
 unsigned char conv(char *nn){
-	unsigned char tt=0,res=0;
-	int i;   
-	
-	for(i=0;i<2;i++){
-		switch(nn[i]){
+    unsigned char tt=0,res=0;
+    int i;   
+    
+    for(i=0;i<2;i++){
+        switch(nn[i]){
 
-		case 65: /*A*/
-		case 97: /*a*/
-		tt = 10;
-		break;
+        case 65: /*A*/
+        case 97: /*a*/
+        tt = 10;
+        break;
 
-		case 66: /*B*/
-		case 98: /*b*/
-		tt = 11;
-		break;
+        case 66: /*B*/
+        case 98: /*b*/
+        tt = 11;
+        break;
 
-		case 67: /*C*/
-		case 99: /*c*/
-		tt = 12;
-		break;
+        case 67: /*C*/
+        case 99: /*c*/
+        tt = 12;
+        break;
 
-		case 68: /*D*/
-		case 100: /*d*/
-		tt = 13;
-		break;
+        case 68: /*D*/
+        case 100: /*d*/
+        tt = 13;
+        break;
 
-		case 69: /*E*/
-		case 101: /*e*/
-		tt = 14;
-		break;
+        case 69: /*E*/
+        case 101: /*e*/
+        tt = 14;
+        break;
 
-		case 70: /*F*/
-		case 102: /*f*/
-		tt = 15;
-		break;
+        case 70: /*F*/
+        case 102: /*f*/
+        tt = 15;
+        break;
 
 
-		default:
-		tt = nn[i] - 48;
-		}
-		res = res + (tt * pow(16,1-i));
-		}
-		return res;
+        default:
+        tt = nn[i] - 48;
+        }
+        res = res + (tt * pow(16,1-i));
+        }
+        return res;
 }
 
 int
@@ -364,17 +364,17 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
 
     FD_ZERO(&readfds);
     FD_SET((*s), &readfds);
-				
+                
     select((*s)+1, &readfds, NULL, NULL, &tv);
-				
+                
     (*terminated) = 0; // Tag to tell if string has 7e termination
     // first read the header to get the record length
-    if (FD_ISSET((*s), &readfds)){	// did we receive anything within 5 seconds
+    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
         bytes_read = recv((*s), header, sizeof(header), 0); //Get length of string
-	(*rr) = 0;
+    (*rr) = 0;
         for( i=0; i<sizeof(header); i++ ) {
             received[(*rr)] = header[i];
-	    if (debug == 1) printf("%02x ", received[(*rr)]);
+        if (debug == 1) printf("%02x ", received[(*rr)]);
             (*rr)++;
         }
     }
@@ -385,7 +385,7 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
         memset(received,0,1024);
         return -1;
     }
-    if (FD_ISSET((*s), &readfds)){	// did we receive anything within 5 seconds
+    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
         bytes_read = recv((*s), buf, header[1]-3, 0); //Read the length specified by header
     }
     else
@@ -409,33 +409,33 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
            (*terminated) = 0;
         for (i=0;i<bytes_read;i++){ //start copy the rec buffer in to received
             if (buf[i] == 0x7d){ //did we receive the escape char
-	        switch (buf[i+1]){   // act depending on the char after the escape char
-					
-		    case 0x5e :
-	                received[(*rr)] = 0x7e;
-		        break;
-							   
-		    case 0x5d :
-		        received[(*rr)] = 0x7d;
-		        break;
-							
-		    default :
-		        received[(*rr)] = buf[i+1] ^ 0x20;
-		        break;
-	        }
-		    i++;
-	    }
-	    else { 
+            switch (buf[i+1]){   // act depending on the char after the escape char
+                    
+            case 0x5e :
+                    received[(*rr)] = 0x7e;
+                break;
+                               
+            case 0x5d :
+                received[(*rr)] = 0x7d;
+                break;
+                            
+            default :
+                received[(*rr)] = buf[i+1] ^ 0x20;
+                break;
+            }
+            i++;
+        }
+        else { 
                received[(*rr)] = buf[i];
         }
-	    if (debug == 1) printf("%02x ", received[(*rr)]);
-	    (*rr)++;
+        if (debug == 1) printf("%02x ", received[(*rr)]);
+        (*rr)++;
     }
     fix_length_received( received, rr );
     hlog_debug("received", received, *rr, 0);
 
     (*already_read)=1;
-    }	
+    }    
     return 0;
 }
 
@@ -454,17 +454,17 @@ read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int c
 
     FD_ZERO(&readfds);
     FD_SET((*s), &readfds);
-				
+                
     select((*s)+1, &readfds, NULL, NULL, &tv);
-				
+                
     (*terminated) = 0; // Tag to tell if string has 7e termination
     // first read the header to get the record length
-    if (FD_ISSET((*s), &readfds)){	// did we receive anything within 5 seconds
+    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
         bytes_read = recv((*s), header, sizeof(header), 0); //Get length of string
-	(*rr) = 0;
+    (*rr) = 0;
         for( i=0; i<sizeof(header); i++ ) {
             received[(*rr)] = header[i];
-	    if (debug == 2) printf("%02x ", received[i]);
+        if (debug == 2) printf("%02x ", received[i]);
             (*rr)++;
         }
     }
@@ -475,7 +475,7 @@ read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int c
        memset(received,0,1024);
        return -1;
     }
-    if (FD_ISSET((*s), &readfds)){	// did we receive anything within 5 seconds
+    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
         bytes_read = recv((*s), buf, header[1]-3, 0); //Read the length specified by header
     }
     else
@@ -499,31 +499,31 @@ read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int c
            (*terminated) = 0;
         for (i=0;i<bytes_read;i++){ //start copy the rec buffer in to received
             if (buf[i] == 0x7d){ //did we receive the escape char
-	        switch (buf[i+1]){   // act depending on the char after the escape char
-					
-		    case 0x5e :
-	                received[(*rr)] = 0x7e;
-		        break;
-							   
-		    case 0x5d :
-		        received[(*rr)] = 0x7d;
-		        break;
-							
-		    default :
-		        received[(*rr)] = buf[i+1] ^ 0x20;
-		        break;
-	        }
-		    i++;
-	    }
-	    else { 
+            switch (buf[i+1]){   // act depending on the char after the escape char
+                    
+            case 0x5e :
+                    received[(*rr)] = 0x7e;
+                break;
+                               
+            case 0x5d :
+                received[(*rr)] = 0x7d;
+                break;
+                            
+            default :
+                received[(*rr)] = buf[i+1] ^ 0x20;
+                break;
+            }
+            i++;
+        }
+        else { 
                received[(*rr)] = buf[i];
             }
-	    if (debug == 2) printf("%02x ", received[(*rr)]);
-	    (*rr)++;
-	    }
+        if (debug == 2) printf("%02x ", received[(*rr)]);
+        (*rr)++;
+        }
         fix_length_received( received, rr );
         log_trace("received", received, *rr, 0);
-    }	
+    }    
     return 0;
 }
 
@@ -547,10 +547,10 @@ unsigned char *  get_timezone_in_seconds( unsigned char *tzhex )
    char *returntime;
 
    float localOffset;
-   int	 tzsecs;
+   int     tzsecs;
 
    returntime = (char *)malloc(6*sizeof(char));
-   curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
+   curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)    
    loctime = localtime(&curtime);
    day = loctime->tm_mday;
    month = loctime->tm_mon +1;
@@ -587,9 +587,9 @@ unsigned char *  get_timezone_in_seconds( unsigned char *tzhex )
 int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
 /*  If there are no dates set - get last updated date and go from there to NOW */
 {
-    time_t  	curtime;
-    struct tm 	loctime;
-    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
+    time_t      curtime;
+    struct tm     loctime;
+    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)    
     loctime = *(localtime(&curtime));
     if( mysql == 1 )
     {
@@ -603,7 +603,7 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
     if( strlen( datefrom ) == 0 )
         strcpy( datefrom, "2000-01-01 00:00:00" );
 
-    //curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
+    //curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)    
     loctime = *(localtime(&curtime));
     loctime.tm_sec = 0;
     strftime(dateto, 25, "%Y-%m-%d %H:%M:%S", &loctime );
@@ -636,7 +636,7 @@ int is_light( )
 //Convert a recieved string to a value
 long ConvertStreamtoLong( unsigned char * stream, int length, long unsigned int * value )
 {
-   int	i, nullvalue;
+   int    i, nullvalue;
    
    (*value) = 0;
    nullvalue = 1;
@@ -655,7 +655,7 @@ long ConvertStreamtoLong( unsigned char * stream, int length, long unsigned int 
 //Convert a recieved string to a value
 float ConvertStreamtoFloat( unsigned char * stream, int length, float * value )
 {
-   int	i, nullvalue;
+   int    i, nullvalue;
    
    (*value) = 0;
    nullvalue = 1;
@@ -675,17 +675,17 @@ float ConvertStreamtoFloat( unsigned char * stream, int length, float * value )
 ReturnType * 
 InitReturnKeys( ConfType * conf, ReturnType * returnkeylist, int * num_return_keys )
 {
-   FILE		*fp;
-   char		line[400];
+   FILE        *fp;
+   char        line[400];
    ReturnType   tmp;
-   int		i, j, reading, data_follows;
+   int        i, j, reading, data_follows;
 
    data_follows = 0;
 
    fp=fopen(conf->File,"r");
 
-   while (!feof(fp)){	
-	if (fgets(line,400,fp) != NULL){				//read line from smatool.conf
+   while (!feof(fp)){    
+    if (fgets(line,400,fp) != NULL){                //read line from smatool.conf
             if( line[0] != '#' ) 
             {
                 if( strncmp( line, ":unit conversions", 17 ) == 0 )
@@ -746,7 +746,7 @@ InitReturnKeys( ConfType * conf, ReturnType * returnkeylist, int * num_return_ke
 //Convert a recieved string to a value
 int ConvertStreamtoInt( unsigned char * stream, int length, int * value )
 {
-   int	i, nullvalue;
+   int    i, nullvalue;
    
    (*value) = 0;
    nullvalue = 1;
@@ -765,7 +765,7 @@ int ConvertStreamtoInt( unsigned char * stream, int length, int * value )
 //Convert a recieved string to a value
 time_t ConvertStreamtoTime( unsigned char * stream, int length, time_t * value )
 {
-   int	i, nullvalue;
+   int    i, nullvalue;
    
    (*value) = 0;
    nullvalue = 1;
@@ -791,10 +791,10 @@ void  SetSwitches( ConfType *conf, char * datefrom, char * dateto, int *location
         (*location)=0;
     //Check if all Mysql variables are set
     if(( strlen(conf->MySqlUser) > 0 )
-	 &&( strlen(conf->MySqlPwd) > 0 )
-	 &&( strlen(conf->MySqlHost) > 0 )
-	 &&( strlen(conf->MySqlDatabase) > 0 )
-	 &&( (*test)==0 ))
+     &&( strlen(conf->MySqlPwd) > 0 )
+     &&( strlen(conf->MySqlHost) > 0 )
+     &&( strlen(conf->MySqlDatabase) > 0 )
+     &&( (*test)==0 ))
         (*mysql)=1;
     else
         (*mysql)=0;
@@ -805,13 +805,13 @@ void  SetSwitches( ConfType *conf, char * datefrom, char * dateto, int *location
         (*file)=0;
     //Check if all PVOutput variables are set
     if(( strlen(conf->PVOutputURL) > 0 )
-	 &&( strlen(conf->PVOutputKey) > 0 )
-	 &&( strlen(conf->PVOutputSid) > 0 ))
+     &&( strlen(conf->PVOutputKey) > 0 )
+     &&( strlen(conf->PVOutputSid) > 0 ))
         (*post)=1;
     else
         (*post)=0;
     if(( strlen(datefrom) > 0 )
-	 &&( strlen(dateto) > 0 ))
+     &&( strlen(dateto) > 0 ))
         (*daterange)=1;
     else
         (*daterange)=0;
@@ -820,8 +820,8 @@ void  SetSwitches( ConfType *conf, char * datefrom, char * dateto, int *location
 unsigned char *
 ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, unsigned char * datalist, int * datalen, unsigned char * last_sent, int cc, int * terminated, int * togo )
 {
-   int	finished;
-   int	finished_record;
+   int    finished;
+   int    finished_record;
    int  i, j=0;
 
    (*togo)=ConvertStreamtoInt( stream+43, 2, togo );
@@ -837,7 +837,7 @@ ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, u
         if( i> 500 ) break; //Somthing has gone wrong
         
         if(( i < (*streamlen) )&&(( (*terminated) != 1)||(i+3 < (*streamlen) ))) 
-	{
+    {
            datalist[j]=stream[i];
            j++;
            (*datalen)=j;
@@ -891,10 +891,10 @@ void InitConfig( ConfType *conf, char * datefrom, char * dateto )
 /* read Config from file */
 int GetConfig( ConfType *conf )
 {
-    FILE 	*fp;
-    char	line[400];
-    char	variable[400];
-    char	value[400];
+    FILE     *fp;
+    char    line[400];
+    char    variable[400];
+    char    value[400];
 
     if (strlen(conf->Config) > 0 )
     {
@@ -912,8 +912,8 @@ int GetConfig( ConfType *conf )
            return( -1 ); //Could not open file
         }
     }
-    while (!feof(fp)){	
-	if (fgets(line,400,fp) != NULL){				//read line from smatool.conf
+    while (!feof(fp)){    
+    if (fgets(line,400,fp) != NULL){                //read line from smatool.conf
             if( line[0] != '#' ) 
             {
                 strcpy( value, "" ); //Null out value
@@ -1095,136 +1095,134 @@ void PrintHelp()
 /* Init Config to default values */
 int ReadCommandConfig( ConfType *conf, int argc, char **argv, char * datefrom, char * dateto, int * verbose, int * debug, int * repost, int * test, int * install, int * update )
 {
-    int	i;
+    int    i;
 
     // these need validation checking at some stage TODO
-    for (i=1;i<argc;i++)			//Read through passed arguments
+    for (i=1;i<argc;i++)            //Read through passed arguments
     {
-	if ((strcmp(argv[i],"-v")==0)||(strcmp(argv[i],"--verbose")==0)) (*verbose) = 1;
-	else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--debug")==0)) (*debug) = 1;
-	else if ((strcmp(argv[i],"-c")==0)||(strcmp(argv[i],"--config")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(conf->Config,argv[i]);
-	    }
-	}
-	else if (strcmp(argv[i],"--test")==0) (*test)=1;
-	else if ((strcmp(argv[i],"-from")==0)||(strcmp(argv[i],"--datefrom")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(datefrom,argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-to")==0)||(strcmp(argv[i],"--dateto")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(dateto,argv[i]);
-	    }
-	}
-	else if (strcmp(argv[i],"-repost")==0){
-	    i++;
+        if ((strcmp(argv[i],"-v")==0)||(strcmp(argv[i],"--verbose")==0)) (*verbose) = 1;
+        else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--debug")==0)) (*debug) = 1;
+        else if ((strcmp(argv[i],"-c")==0)||(strcmp(argv[i],"--config")==0)) {
+            i++;
+            if(i<argc){
+                strcpy(conf->Config,argv[i]);
+            }
+        }
+        else if (strcmp(argv[i],"--test")==0) (*test)=1;
+        else if ((strcmp(argv[i],"-from")==0)||(strcmp(argv[i],"--datefrom")==0))   {
+            i++;
+            if(i<argc){
+                strcpy(datefrom,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-to")==0)||(strcmp(argv[i],"--dateto")==0)) {
+            i++;
+            if(i<argc){
+                strcpy(dateto,argv[i]);
+            }
+        }
+        else if (strcmp(argv[i],"-repost")==0) {
+            i++;
             (*repost)=1;
-	}
-        else if ((strcmp(argv[i],"-i")==0)||(strcmp(argv[i],"--inverter")==0)){
+        }
+        else if ((strcmp(argv[i],"-i")==0)||(strcmp(argv[i],"--inverter")==0)) {
             i++;
             if (i<argc){
-	        strcpy(conf->Inverter,argv[i]);
-            }
-	}
-        else if ((strcmp(argv[i],"-a")==0)||(strcmp(argv[i],"--address")==0)){
-            i++;
-            if (i<argc){
-	        strcpy(conf->BTAddress,argv[i]);
-            }
-	}
-        else if ((strcmp(argv[i],"-t")==0)||(strcmp(argv[i],"--timeout")==0)){
-            i++;
-            if (i<argc){
-	        conf->bt_timeout = atoi(argv[i]);
-            }
-	}
-        else if ((strcmp(argv[i],"-p")==0)||(strcmp(argv[i],"--password")==0)){
-            i++;
-            if (i<argc){
-	        strcpy(conf->Password,argv[i]);
-            }
-	}
-        else if ((strcmp(argv[i],"-f")==0)||(strcmp(argv[i],"--file")==0)){
-            i++;
-            if (i<argc){
-	        strcpy(conf->File,argv[i]);
-            }
-	}
-	else if ((strcmp(argv[i],"-lat")==0)||(strcmp(argv[i],"--latitude")==0)){
-	    i++;
-	    if(i<argc){
-		conf->latitude_f=atof(argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-long")==0)||(strcmp(argv[i],"--longitude")==0)){
-	    i++;
-	    if(i<argc){
-		conf->longitude_f=atof(argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-H")==0)||(strcmp(argv[i],"--mysqlhost")==0)){
-            i++;
-            if (i<argc){
-		strcpy(conf->MySqlHost,argv[i]);
+                strcpy(conf->Inverter,argv[i]);
             }
         }
-	else if ((strcmp(argv[i],"-D")==0)||(strcmp(argv[i],"--mysqlcwdb")==0)){
+        else if ((strcmp(argv[i],"-a")==0)||(strcmp(argv[i],"--address")==0)) {
             i++;
             if (i<argc){
-		strcpy(conf->MySqlDatabase,argv[i]);
+                strcpy(conf->BTAddress,argv[i]);
             }
         }
-	else if ((strcmp(argv[i],"-U")==0)||(strcmp(argv[i],"--mysqluser")==0)){
+        else if ((strcmp(argv[i],"-t")==0)||(strcmp(argv[i],"--timeout")==0)) {
             i++;
             if (i<argc){
-		strcpy(conf->MySqlUser,argv[i]);
+                conf->bt_timeout = atoi(argv[i]);
             }
         }
-	else if ((strcmp(argv[i],"-P")==0)||(strcmp(argv[i],"--mysqlpwd")==0)){
+        else if ((strcmp(argv[i],"-p")==0)||(strcmp(argv[i],"--password")==0)) {
             i++;
             if (i<argc){
-		strcpy(conf->MySqlPwd,argv[i]);
+                strcpy(conf->Password,argv[i]);
             }
-	}				
-	else if ((strcmp(argv[i],"-url")==0)||(strcmp(argv[i],"--pvouturl")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(conf->PVOutputURL,argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-key")==0)||(strcmp(argv[i],"--pvoutkey")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(conf->PVOutputKey,argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-sid")==0)||(strcmp(argv[i],"--pvoutsid")==0)){
-	    i++;
-	    if(i<argc){
-		strcpy(conf->PVOutputSid,argv[i]);
-	    }
-	}
-	else if ((strcmp(argv[i],"-h")==0) || (strcmp(argv[i],"--help") == 0 ))
-        {
-           PrintHelp();
-           return( -1 );
         }
-	else if (strcmp(argv[i],"--INSTALL")==0) (*install)=1;
-	else if (strcmp(argv[i],"--UPDATE")==0) (*update)=1;
-        else
-        {
-           printf("Bad Syntax\n\n" );
-           for( i=0; i< argc; i++ )
-             printf( "%s ", argv[i] );
-           printf( "\n\n" );
-          
-           PrintHelp();
-           return( -1 );
+        else if ((strcmp(argv[i],"-f")==0)||(strcmp(argv[i],"--file")==0)) {
+            i++;
+            if (i<argc){
+                strcpy(conf->File,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-lat")==0)||(strcmp(argv[i],"--latitude")==0)) {
+            i++;
+            if(i<argc){
+                conf->latitude_f=atof(argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-long")==0)||(strcmp(argv[i],"--longitude")==0)) {
+            i++;
+            if(i<argc){
+                conf->longitude_f=atof(argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-H")==0)||(strcmp(argv[i],"--mysqlhost")==0)) {
+            i++;
+            if (i<argc){
+                strcpy(conf->MySqlHost,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-D")==0)||(strcmp(argv[i],"--mysqlcwdb")==0)) {
+            i++;
+            if (i<argc){
+                strcpy(conf->MySqlDatabase,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-U")==0)||(strcmp(argv[i],"--mysqluser")==0)) {
+            i++;
+            if (i<argc){
+                strcpy(conf->MySqlUser,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-P")==0)||(strcmp(argv[i],"--mysqlpwd")==0)) {
+            i++;
+            if (i<argc){
+                strcpy(conf->MySqlPwd,argv[i]);
+            }
+        }                
+        else if ((strcmp(argv[i],"-url")==0)||(strcmp(argv[i],"--pvouturl")==0)) {
+            i++;
+            if(i<argc){
+                strcpy(conf->PVOutputURL,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-key")==0)||(strcmp(argv[i],"--pvoutkey")==0)) {
+            i++;
+            if(i<argc){
+                strcpy(conf->PVOutputKey,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-sid")==0)||(strcmp(argv[i],"--pvoutsid")==0)) {
+            i++;
+            if(i<argc){
+                strcpy(conf->PVOutputSid,argv[i]);
+            }
+        }
+        else if ((strcmp(argv[i],"-h")==0) || (strcmp(argv[i],"--help") == 0 )) {
+            PrintHelp();
+            return( -1 );
+        }
+        else if (strcmp(argv[i],"--INSTALL")==0) (*install)=1;
+        else if (strcmp(argv[i],"--UPDATE")==0) (*update)=1;
+        else {
+            printf("Bad Syntax\n\n" );
+            for( i=0; i< argc; i++ )
+                printf( "%s ", argv[i] );
+            printf( "\n\n" );
+
+            PrintHelp();
+            return( -1 );
         }
     }
     return( 0 );
@@ -1244,15 +1242,15 @@ char * debugdate()
     struct tm *tm;
     static char result[20];
 
-    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
+    curtime = time(NULL);  //get time in seconds since epoch (1/1/1970)    
     tm = localtime(&curtime);
     sprintf( result, "%4d-%02d-%02d %02d:%02d:%02d",
-	1900+tm->tm_year,
-	1+tm->tm_mon,
-	tm->tm_mday,
-	tm->tm_hour,
-	tm->tm_min,
-	tm->tm_sec );
+    1900+tm->tm_year,
+    1+tm->tm_mon,
+    tm->tm_mday,
+    tm->tm_hour,
+    tm->tm_min,
+    tm->tm_sec );
     return result;
 }
 
@@ -1321,7 +1319,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
     log_debug ( "No data posted because db_get_unposted_data returned NULL " );
     log_debug ( "for from_datetime = %04d-%02d-%02d %02d:%02d", from_datetime.tm_year+1900, 
                  from_datetime.tm_mon+1, from_datetime.tm_mday, from_datetime.tm_hour, from_datetime.tm_min );
-	return; //nothing to post, db_get_unposted_data returns NULL if no results
+    return; //nothing to post, db_get_unposted_data returns NULL if no results
   }
 
   int rows_processed = 0;
@@ -1335,10 +1333,10 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
   {
     if( 0 == rows_processed )
     {
-	    start_datetime = db_row_datetime_data( row, 0  );
-	    // r2 service - key and sid are sent as headers, not in the url
-	    string_end = sprintf(posturl,"%s?data=",pvOutputUrl);
-	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
+        start_datetime = db_row_datetime_data( row, 0  );
+        // r2 service - key and sid are sent as headers, not in the url
+        string_end = sprintf(posturl,"%s?data=",pvOutputUrl);
+        startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
     }
     this_datetime = db_row_datetime_data( row, 0 );
     if( start_datetime.tm_mday != this_datetime.tm_mday )
@@ -1356,9 +1354,9 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
       curlResult = curl_post_this_query(posturl, pvOutputKey, pvOutputSid);
       if ( curlResult == 0 )
       {
-	    db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 30, values
-	    rows_processed = 0;
-	    sleep(2); //pvoutput api says we can't post more than once a second.
+        db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 30, values
+        rows_processed = 0;
+        sleep(2); //pvoutput api says we can't post more than once a second.
       } else {
           log_info( "NOT sleeping after a post, CURL result was %d",curlResult );
       }
@@ -1418,7 +1416,7 @@ int main(int argc, char **argv)
     struct tm tm;
     int day,month,year,hour,minute,second;
     char tt[10] = {48,48,48,48,48,48,48,48,48,48}; 
-    char ti[3];	
+    char ti[3];    
     char chan[1];
     float currentpower_total;
     int   rr;
@@ -1445,7 +1443,7 @@ int main(int argc, char **argv)
     memset(received,0,1024);
     last_sent = (unsigned  char *)malloc( sizeof( unsigned char ));
     /* get the report time - used in various places */
-    reporttime = time(NULL);  //get time in seconds since epoch (1/1/1970)	
+    reporttime = time(NULL);  //get time in seconds since epoch (1/1/1970)    
     
     // set config to defaults
     InitConfig( &conf, datefrom, dateto );
@@ -1466,16 +1464,16 @@ int main(int argc, char **argv)
     
     if(( install==1 )&&( mysql==1 ))
     {
-	db_init( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
+    db_init( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
         int result = db_install_tables();
-	db_close();
+    db_close();
         exit(result);
     }
     if(( update==1 )&&( mysql==1 ))
     {
-	db_init( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
+    db_init( conf.MySqlHost, conf.MySqlUser, conf.MySqlPwd, conf.MySqlDatabase );
         int result = 0; //db_update_schema( SCHEMA_VALUE ); //TODO implement this
-	db_close();
+    db_close();
         exit(result);
     }
 
@@ -1501,9 +1499,9 @@ int main(int argc, char **argv)
       loctime = localtime( &curtime );
       if( !db_fetch_almanac( loctime , sunrise_time, sunset_time ) )
       {
-	sprintf( sunrise_time, "%s", sunrise(conf.latitude_f,conf.longitude_f ));
-	sprintf( sunset_time, "%s", sunset(conf.latitude_f, conf.longitude_f ));
-	db_update_almanac( loctime, sunrise_time, sunset_time );
+    sprintf( sunrise_time, "%s", sunrise(conf.latitude_f,conf.longitude_f ));
+    sprintf( sunset_time, "%s", sunset(conf.latitude_f, conf.longitude_f ));
+    db_update_almanac( loctime, sunrise_time, sunset_time );
       }
       log_verbose( "sunrise=%s sunset=%s", sunrise_time, sunset_time );
            
@@ -1512,20 +1510,20 @@ int main(int argc, char **argv)
         auto_set_dates( &daterange, mysql, datefrom, dateto );
     else
         log_verbose( "QUERY RANGE    from %s to %s", datefrom, dateto ); 
-	
+    
     int isLight = is_light();
     if( verbose == 1 ) printf("is_light() =  %u",isLight );
     
     if(( daterange==1 )&&((location==0)||(mysql==0)||is_light( )))
     {
-	log_verbose( "Address %s",conf.BTAddress );
+    log_verbose( "Address %s",conf.BTAddress );
 
     if (file ==1)
-	  fp=fopen(conf.File,"r");
+      fp=fopen(conf.File,"r");
     else
-	  fp=fopen("/etc/sma.in","r");
-	for( i=1; i<20; i++ ){
-	    // allocate a socket
+      fp=fopen("/etc/sma.in","r");
+    for( i=1; i<20; i++ ){
+        // allocate a socket
         s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 
         // set the connection parameters (who to connect to)
@@ -1538,15 +1536,15 @@ int main(int argc, char **argv)
         status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 
         if (status <0){
-	        log_error( "Error connecting to %s. Errno=%i. %s",conf.BTAddress, errno, strerror( errno ) );
-	        close( s );
+            log_error( "Error connecting to %s. Errno=%i. %s",conf.BTAddress, errno, strerror( errno ) );
+            close( s );
         }
         else
            break;
    }
    if (status < 0 )
    {
-	return( -1 );
+    return( -1 );
    }
 
    // convert address
@@ -1556,65 +1554,65 @@ int main(int argc, char **argv)
    address[2] = conv(strtok(NULL,":"));
    address[1] = conv(strtok(NULL,":"));
    address[0] = conv(strtok(NULL,":"));
-	
-   while (!feof(fp)){	
+    
+   while (!feof(fp)){    
         start:
-	if (fgets(line,400,fp) != NULL){				//read line from sma.in
-		linenum++;
-		lineread = strtok(line," ;");
-		if(!strcmp(lineread,"R")){		//See if line is something we need to receive
-			log_debug( "[%d] Waiting for string",linenum );
-			cc = 0;
-			do{
-				lineread = strtok(NULL," ;");
-				log_trace( "Read command [%s]", lineread );
-				switch(select_str(lineread)) {
-	
-				case 0: // $END
-				//do nothing
-				break;			
+    if (fgets(line,400,fp) != NULL){                //read line from sma.in
+        linenum++;
+        lineread = strtok(line," ;");
+        if(!strcmp(lineread,"R")){        //See if line is something we need to receive
+            log_debug( "[%d] Waiting for string",linenum );
+            cc = 0;
+            do{
+                lineread = strtok(NULL," ;");
+                log_trace( "Read command [%s]", lineread );
+                switch(select_str(lineread)) {
+    
+                case 0: // $END
+                //do nothing
+                break;            
 
-				case 1: // $ADDR
-				for (i=0;i<6;i++){
-					fl[cc] = address[i];
-					cc++;
-				}
-				break;	
+                case 1: // $ADDR
+                for (i=0;i<6;i++){
+                    fl[cc] = address[i];
+                    cc++;
+                }
+                break;    
 
-				case 3: // $SER
-				for (i=0;i<4;i++){
-					fl[cc] = serial[i];
-					cc++;
-				}
-				break;	
-				
-				case 7: // $ADD2
-				for (i=0;i<6;i++){
-					fl[cc] = address2[i];
-					cc++;
-				}
-				break;	
+                case 3: // $SER
+                for (i=0;i<4;i++){
+                    fl[cc] = serial[i];
+                    cc++;
+                }
+                break;    
+                
+                case 7: // $ADD2
+                for (i=0;i<6;i++){
+                    fl[cc] = address2[i];
+                    cc++;
+                }
+                break;    
 
-				case 8: // $CHAN
-				fl[cc] = chan[0];
-				cc++;
-				break;
+                case 8: // $CHAN
+                fl[cc] = chan[0];
+                cc++;
+                break;
 
-				default :
-				fl[cc] = conv(lineread);
-				cc++;
-				}
+                default :
+                fl[cc] = conv(lineread);
+                cc++;
+                }
 
-			} while (strcmp(lineread,"$END"));
-			{
+            } while (strcmp(lineread,"$END"));
+            {
                 char buf[128];
                 snprintf(buf, 127, "[%d] waiting for", linenum);
                 hlog_debug(buf, fl, cc, 0);
-			}
-			log_debug("[%d] Waiting for data on rfcomm", linenum);
+            }
+            log_debug("[%d] Waiting for data on rfcomm", linenum);
 
-			found = 0;
-			do {
+            found = 0;
+            do {
                 if( already_read == 0 )
                     rr=0;
                 if(( already_read == 0 )&&( read_bluetooth( &conf, &s, &rr, received, cc, last_sent, &terminated ) != 0 ))
@@ -1644,106 +1642,106 @@ int main(int argc, char **argv)
                   }
                 }
                            
-		        if (memcmp(fl+4,received+4,cc-4) == 0){
-			        found = 1;
-			        log_debug("[%d] Found string we are waiting for",
-			                    linenum);
-		        } else {
-		            log_debug("[%d] Did not find string", linenum);
-		        }
-			} while (found == 0);
-			hlog_trace("data", fl, cc, 0);
-		}
-		if(!strcmp(lineread,"S")){		//See if line is something we need to send
-			log_debug("[%d] Sending", linenum);
-			cc = 0;
-			do{
-				lineread = strtok(NULL," ;");
-				switch(select_str(lineread)) {
-	
-				case 0: // $END
-				//do nothing
-				break;			
+                if (memcmp(fl+4,received+4,cc-4) == 0){
+                    found = 1;
+                    log_debug("[%d] Found string we are waiting for",
+                                linenum);
+                } else {
+                    log_debug("[%d] Did not find string", linenum);
+                }
+            } while (found == 0);
+            hlog_trace("data", fl, cc, 0);
+        }
+        if(!strcmp(lineread,"S")){        //See if line is something we need to send
+            log_debug("[%d] Sending", linenum);
+            cc = 0;
+            do{
+                lineread = strtok(NULL," ;");
+                switch(select_str(lineread)) {
+    
+                case 0: // $END
+                //do nothing
+                break;            
 
-				case 1: // $ADDR
-				for (i=0;i<6;i++){
-					fl[cc] = address[i];
-					cc++;
-				}
-				break;
+                case 1: // $ADDR
+                for (i=0;i<6;i++){
+                    fl[cc] = address[i];
+                    cc++;
+                }
+                break;
 
-				case 3: // $SER
-				for (i=0;i<4;i++){
-					fl[cc] = serial[i];
-					cc++;
-				}
-				break;	
-				
+                case 3: // $SER
+                for (i=0;i<4;i++){
+                    fl[cc] = serial[i];
+                    cc++;
+                }
+                break;    
+                
 
-				case 7: // $ADD2
-				for (i=0;i<6;i++){
-					fl[cc] = address2[i];
-					cc++;
-				}
-				break;
+                case 7: // $ADD2
+                for (i=0;i<6;i++){
+                    fl[cc] = address2[i];
+                    cc++;
+                }
+                break;
 
-				case 2: // $TIME	
-				// get report time and convert
-				sprintf(tt,"%x",(int)reporttime); //convert to a hex in a string
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                case 2: // $TIME    
+                // get report time and convert
+                sprintf(tt,"%x",(int)reporttime); //convert to a hex in a string
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
-				case 11: // $TMPLUS	
-				// get report time and convert
-				sprintf(tt,"%x",(int)reporttime+1); //convert to a hex in a string
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                case 11: // $TMPLUS    
+                // get report time and convert
+                sprintf(tt,"%x",(int)reporttime+1); //convert to a hex in a string
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
 
-				case 10: // $TMMINUS
-				// get report time and convert
-				sprintf(tt,"%x",(int)reporttime-1); //convert to a hex in a string
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                case 10: // $TMMINUS
+                // get report time and convert
+                sprintf(tt,"%x",(int)reporttime-1); //convert to a hex in a string
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
-				case 4: //$crc
-				tryfcs16(fl+19, cc -19);
+                case 4: //$crc
+                tryfcs16(fl+19, cc -19);
                                 add_escapes(fl,&cc);
                                 fix_length_send(fl,&cc);
-				break;
+                break;
 
-				case 8: // $CHAN
-				fl[cc] = chan[0];
-				cc++;
-				break;
+                case 8: // $CHAN
+                fl[cc] = chan[0];
+                cc++;
+                break;
 
-				case 12: // $TIMESTRING
-				for (i=0;i<25;i++){
-					fl[cc] = timestr[i];
-					cc++;
-				}
-				break;
+                case 12: // $TIMESTRING
+                for (i=0;i<25;i++){
+                    fl[cc] = timestr[i];
+                    cc++;
+                }
+                break;
 
-				case 13: // $TIMEFROM1	
-				// get report time and convert
+                case 13: // $TIMEFROM1    
+                // get report time and convert
                                 if( daterange == 1 ) {
                                     if( strptime( datefrom, "%Y-%m-%d %H:%M:%S", &tm) == 0 ) 
                                     {
@@ -1767,17 +1765,17 @@ int main(int argc, char **argv)
                                   printf( "no from" ); getchar();
                                   fromtime=0;
                                 }
-				sprintf(tt,"%03x",(int)fromtime-300); //convert to a hex in a string and start 5 mins before for dummy read.
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                sprintf(tt,"%03x",(int)fromtime-300); //convert to a hex in a string and start 5 mins before for dummy read.
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
-				case 14: // $TIMETO1	
+                case 14: // $TIMETO1    
                                 if( daterange == 1 ) {
                                     if( strptime( dateto, "%Y-%m-%d %H:%M:%S", &tm) == 0 ) 
                                     {
@@ -1798,18 +1796,18 @@ int main(int argc, char **argv)
                                 }
                                 else
                                   totime=0;
-				sprintf(tt,"%03x",(int)totime); //convert to a hex in a string
-				// get report time and convert
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                sprintf(tt,"%03x",(int)totime); //convert to a hex in a string
+                // get report time and convert
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
-				case 15: // $TIMEFROM2	
+                case 15: // $TIMEFROM2    
                                 if( daterange == 1 ) {
                                     strptime( datefrom, "%Y-%m-%d %H:%M:%S", &tm);
                                     tm.tm_isdst=-1;
@@ -1827,17 +1825,17 @@ int main(int argc, char **argv)
                                   printf( "no from" ); getchar();
                                   fromtime=0;
                                 }
-				sprintf(tt,"%03x",(int)fromtime); //convert to a hex in a string
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                sprintf(tt,"%03x",(int)fromtime); //convert to a hex in a string
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
 
-				case 16: // $TIMETO2	
+                case 16: // $TIMETO2    
                                 if( daterange == 1 ) {
                                     strptime( dateto, "%Y-%m-%d %H:%M:%S", &tm);
 
@@ -1853,89 +1851,89 @@ int main(int argc, char **argv)
                                 }
                                 else
                                   totime=0;
-				sprintf(tt,"%03x",(int)totime); //convert to a hex in a string
-				for (i=7;i>0;i=i-2){ //change order and convert to integer
-					ti[1] = tt[i];
-					ti[0] = tt[i-1];	
+                sprintf(tt,"%03x",(int)totime); //convert to a hex in a string
+                for (i=7;i>0;i=i-2){ //change order and convert to integer
+                    ti[1] = tt[i];
+                    ti[0] = tt[i-1];    
                                         ti[2] = '\0';
-					fl[cc] = conv(ti);
-					cc++;		
-				}
-				break;
-				
-				case 19: // $PASSWORD
+                    fl[cc] = conv(ti);
+                    cc++;        
+                }
+                break;
+                
+                case 19: // $PASSWORD
                               
                                 j=0;
-				for(i=0;i<12;i++){
-				    if( conf.Password[j] == '\0' )
-                                  	fl[cc] = 0x88;
+                for(i=0;i<12;i++){
+                    if( conf.Password[j] == '\0' )
+                                      fl[cc] = 0x88;
                                     else {
                                         pass_i = conf.Password[j];
                                         fl[cc] = (( pass_i+0x88 )%0xff);
                                         j++;
                                     }
                                     cc++;
-				}
-				break;	
+                }
+                break;    
 
-				case 21: // $UNKNOWN
-				for (i=0;i<4;i++){
-			            fl[cc] = conf.InverterCode[i];
-				    cc++;
-				}
+                case 21: // $UNKNOWN
+                for (i=0;i<4;i++){
+                        fl[cc] = conf.InverterCode[i];
+                    cc++;
+                }
                                 break;
 
-				case 22: // $INVCODE
-			            fl[cc] = invcode;
-				    cc++;
+                case 22: // $INVCODE
+                        fl[cc] = invcode;
+                    cc++;
                                 break;
-				case 23: // $ARCHCODE
-			            fl[cc] = conf.ArchiveCode;
-				    cc++;
+                case 23: // $ARCHCODE
+                        fl[cc] = conf.ArchiveCode;
+                    cc++;
                                 break;
-				case 25: // $CNT send counter
+                case 25: // $CNT send counter
                                     send_count++;
-			            fl[cc] = send_count;
-				    cc++;
+                        fl[cc] = send_count;
+                    cc++;
                                 break;
-				case 26: // $TIMEZONE timezone in seconds
-			            fl[cc] = tzhex[1];
-			            fl[cc+1] = tzhex[0];
-				    cc+=2;
+                case 26: // $TIMEZONE timezone in seconds
+                        fl[cc] = tzhex[1];
+                        fl[cc+1] = tzhex[0];
+                    cc+=2;
                                 break;
-				case 27: // $TIMESET unknown setting
+                case 27: // $TIMESET unknown setting
                                     for( i=0; i<4; i++ ) {
-			                fl[cc] = timeset[i];
-				        cc++;
+                            fl[cc] = timeset[i];
+                        cc++;
                                     }
                                 break;
 
-				default :
-				fl[cc] = conv(lineread);
-				cc++;
-				}
+                default :
+                fl[cc] = conv(lineread);
+                cc++;
+                }
 
-			} while (strcmp(lineread,"$END"));
-			{
-			    char buf[128];
-			    snprintf(buf, 127, "[%d] sending", linenum);
-			    hlog_debug(buf, fl, cc, 12);
-			}
+            } while (strcmp(lineread,"$END"));
+            {
+                char buf[128];
+                snprintf(buf, 127, "[%d] sending", linenum);
+                hlog_debug(buf, fl, cc, 12);
+            }
             last_sent = (unsigned  char *)realloc( last_sent, sizeof( unsigned char )*(cc));
-			memcpy(last_sent,fl,cc);
-			write(s,fl,cc);
+            memcpy(last_sent,fl,cc);
+            write(s,fl,cc);
                         already_read=0;
                         //check_send_error( &conf, &s, &rr, received, cc, last_sent, &terminated, &already_read ); 
-		}
+        }
 
 
-		if(!strcmp(lineread,"E")){		//See if line is something we need to extract
-			log_debug("[%d] Extracting", linenum);
-			cc = 0;
-			do{
-				lineread = strtok(NULL," ;");
-				//printf( "\nselect=%d", select_str(lineread)); 
-				switch(select_str(lineread)) {
+        if(!strcmp(lineread,"E")){        //See if line is something we need to extract
+            log_debug("[%d] Extracting", linenum);
+            cc = 0;
+            do{
+                lineread = strtok(NULL," ;");
+                //printf( "\nselect=%d", select_str(lineread)); 
+                switch(select_str(lineread)) {
                               
                                 case 3: // Extract Serial of Inverter
                                
@@ -1950,14 +1948,14 @@ int main(int argc, char **argv)
                                 serial[2]=data[18];
                                 serial[1]=data[17];
                                 serial[0]=data[16];
-			                    log_verbose( "serial=%02x:%02x:%02x:%02x\n",
-			                                    serial[3]&0xff,serial[2]&0xff,
-			                                    serial[1]&0xff,serial[0]&0xff ); 
+                                log_verbose( "serial=%02x:%02x:%02x:%02x\n",
+                                                serial[3]&0xff,serial[2]&0xff,
+                                                serial[1]&0xff,serial[0]&0xff ); 
                                 free( data );
                                 break;
                                 
-				case 9: // extract Time from Inverter
-				                idate = (received[66] * 16777216 ) + (received[65] *65536 )+ (received[64] * 256) + received[63];
+                case 9: // extract Time from Inverter
+                                idate = (received[66] * 16777216 ) + (received[65] *65536 )+ (received[64] * 256) + received[63];
                                                 loctime = localtime(&idate);
                                                 day = loctime->tm_mday;
                                                 month = loctime->tm_mon +1;
@@ -1965,14 +1963,14 @@ int main(int argc, char **argv)
                                                 hour = loctime->tm_hour;
                                                 minute = loctime->tm_min; 
                                                 second = loctime->tm_sec; 
-				                log_info( "Date power = %d/%d/%4d %02d:%02d:%02d",day, month, year, hour, minute,second);
+                                log_info( "Date power = %d/%d/%4d %02d:%02d:%02d",day, month, year, hour, minute,second);
 #if 0
                 /* This was commented out. */
-				currentpower = (received[72] * 256) + received[71];
-				printf("Current power = %i Watt\n",currentpower);
+                currentpower = (received[72] * 256) + received[71];
+                printf("Current power = %i Watt\n",currentpower);
 #endif
-				break;
-				case 5: // extract current power $POW
+                break;
+                case 5: // extract current power $POW
                                 data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
                                 if( (data+3)[0] == 0x08 )
                                     gap = 40; 
@@ -2005,14 +2003,14 @@ int main(int argc, char **argv)
                                        log_info("%d-%02d-%02d %02d:%02d:%02d %-20s = %.0f %-20s", year, month, day, hour, minute, second,
                                                  returnkeylist[return_key].description, currentpower_total/returnkeylist[return_key].divisor, 
                                                  returnkeylist[return_key].units );
-				                   else
-				                       log_info("%d-%02d-%02d %02d:%02d:%02d NO DATA for %02x %02x = %.0f NO UNITS", year, month, day, hour,
-				                                 minute, second, (data+i+1)[0], (data+i+1)[1], currentpower_total );
+                                   else
+                                       log_info("%d-%02d-%02d %02d:%02d:%02d NO DATA for %02x %02x = %.0f NO UNITS", year, month, day, hour,
+                                                 minute, second, (data+i+1)[0], (data+i+1)[1], currentpower_total );
                                 }
                                 free( data );
-				break;
+                break;
 
-				case 6: // extract total energy collected today
+                case 6: // extract total energy collected today
                           
                     gtotal = (received[69] * 65536) + (received[68] * 256) + received[67];
                     gtotal = gtotal / 1000;
@@ -2021,23 +2019,23 @@ int main(int argc, char **argv)
                     dtotal = (received[84] * 256) + received[83];
                     dtotal = dtotal / 1000;
                     log_info("E total today = %.2f kWh",dtotal);
-                    break;		
+                    break;        
 
-				case 7: // extract 2nd address
-				    memcpy(address2,received+26,6);
-				    log_debug("address 2");
-				    break;
-				
-				case 8: // extract bluetooth channel
-				    memcpy(chan,received+22,1);
-				    log_debug("Bluetooth channel [%i]", chan[0]);
-				    break;
+                case 7: // extract 2nd address
+                    memcpy(address2,received+26,6);
+                    log_debug("address 2");
+                    break;
+                
+                case 8: // extract bluetooth channel
+                    memcpy(chan,received+22,1);
+                    log_debug("Bluetooth channel [%i]", chan[0]);
+                    break;
 
-				case 12: // extract time strings $TIMESTRING
+                case 12: // extract time strings $TIMESTRING
                     if(( received[60] == 0x6d )&&( received[61] == 0x23 ))
                     {
-				        memcpy(timestr,received+63,24);
-				        log_debug("extracting timestring\n");
+                        memcpy(timestr,received+63,24);
+                        log_debug("extracting timestring\n");
                         memcpy(timeset,received+79,4);
                         idate=ConvertStreamtoTime( received+63,4, &idate );
                         /* Allow delay for inverter to be slow */
@@ -2048,8 +2046,8 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-				        memcpy(timestr,received+63,24);
-				        log_debug("bad extracting timestring");
+                        memcpy(timestr,received+63,24);
+                        log_debug("bad extracting timestring");
                         already_read=0;
                         fseek( fp, returnpos, 0 );
                         linenum = returnline;
@@ -2065,16 +2063,16 @@ int main(int argc, char **argv)
                         //exit(-1);
                     }
                                 
-				break;
+                break;
 
-				case 17: // Test data
+                case 17: // Test data
                         data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
                         // printf( "\n" );
                   
                         free( data );
                         break;
-				
-				case 18: // $ARCHIVEDATA1
+                
+                case 18: // $ARCHIVEDATA1
                     finished=0;
                     ptotal=0;
                     idate=0;
@@ -2109,13 +2107,13 @@ int main(int argc, char **argv)
                              if( idate != prev_idate+300 ) {
                                 log_error("Date Error! prev=%d current=%d\n", (int)prev_idate, (int)idate );
                                 error=1;
-					            break;
+                                break;
                              }
                              if( archdatalen == 0 )
                                 archdatalist = (struct archdata_type *)malloc( sizeof( struct archdata_type ) );
                              else
                                 archdatalist = (struct archdata_type *)realloc( archdatalist, sizeof( struct archdata_type )*(archdatalen+1));
-					         (archdatalist+archdatalen)->date=idate;
+                             (archdatalist+archdatalen)->date=idate;
                              strcpy((archdatalist+archdatalen)->inverter,conf.Inverter);
                              ConvertStreamtoLong( serial, 4, &(archdatalist+archdatalen)->serial);
                              (archdatalist+archdatalen)->accum_value=gtotal;
@@ -2147,18 +2145,18 @@ int main(int argc, char **argv)
                     free( data );
                     // printf( "\n" );
                               
-				    break;
-				case 20: // SIGNAL signal strength
-				    strength  = (received[22] * 100.0)/0xff;
-	                log_verbose("bluetooth signal [%.0f%%]",strength);
-                    break;		
+                    break;
+                case 20: // SIGNAL signal strength
+                    strength  = (received[22] * 100.0)/0xff;
+                    log_verbose("bluetooth signal [%.0f%%]",strength);
+                    break;        
 
-				case 22: // extract time strings $INVCODE
-				    invcode=received[22];
-				    log_debug("extracting invcode [%02x]", invcode);
-				    break;
+                case 22: // extract time strings $INVCODE
+                    invcode=received[22];
+                    log_debug("extracting invcode [%02x]", invcode);
+                    break;
 
-				case 24: // Inverter data $INVERTERDATA
+                case 24: // Inverter data $INVERTERDATA
                         data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
                         log_debug( "data=%02x",(data+3)[0] );
                         if( (data+3)[0] == 0x08 )
@@ -2200,50 +2198,50 @@ int main(int argc, char **argv)
                                          year, month, day, hour, minute, second, (data+i+1)[0], (data+i+1)[0], currentpower_total );
                         }
                         free( data );
-				break;
-				}				
+                break;
+                }                
             }
-				
-			while (strcmp(lineread,"$END"));
-		} 
-		if(!strcmp(lineread,":init")){		//See if line is something we need to extract
+                
+            while (strcmp(lineread,"$END"));
+        } 
+        if(!strcmp(lineread,":init")){        //See if line is something we need to extract
                    initstarted=1;
                    returnpos=ftell(fp);
-		   returnline = linenum;
+           returnline = linenum;
                 }
-		if(!strcmp(lineread,":setup")){		//See if line is something we need to extract
+        if(!strcmp(lineread,":setup")){        //See if line is something we need to extract
                    setupstarted=1;
                    returnpos=ftell(fp);
-		   returnline = linenum;
+           returnline = linenum;
                 }
-		if(!strcmp(lineread,":startsetup")){		//See if line is something we need to extract
+        if(!strcmp(lineread,":startsetup")){        //See if line is something we need to extract
                    sleep(1);
                 }
-		if(!strcmp(lineread,":setinverter1")){		//See if line is something we need to extract
+        if(!strcmp(lineread,":setinverter1")){        //See if line is something we need to extract
                    setupstarted=1;
                    returnpos=ftell(fp);
-		   returnline = linenum;
+           returnline = linenum;
                 }
-		if(!strcmp(lineread,":getrangedata")){		//See if line is something we need to extract
+        if(!strcmp(lineread,":getrangedata")){        //See if line is something we need to extract
                    rangedatastarted=1;
                    returnpos=ftell(fp);
-		   returnline = linenum;
+           returnline = linenum;
         }
-	}
+    }
     }
 
     if ((mysql ==1)&&(error==0)){
-	for( i=1; i<archdatalen; i++ ) //Start at 1 as the first record is a dummy
+    for( i=1; i<archdatalen; i++ ) //Start at 1 as the first record is a dummy
         {
-	  struct tm *interval;
-	  interval = localtime( &((archdatalist+i)->date) );
-	  db_set_interval_value( interval, (archdatalist+i)->inverter, (archdatalist+i)->serial, (archdatalist+i)->current_value, (archdatalist+i)->accum_value );
+      struct tm *interval;
+      interval = localtime( &((archdatalist+i)->date) );
+      db_set_interval_value( interval, (archdatalist+i)->inverter, (archdatalist+i)->serial, (archdatalist+i)->current_value, (archdatalist+i)->accum_value );
         }
     }
  
     close(s);
     if( archdatalen > 0 )
-	free( archdatalist );
+    free( archdatalist );
     archdatalen=0;
     free(last_sent);
     if ((post ==1)&&(mysql==1)&&(error==0)){
