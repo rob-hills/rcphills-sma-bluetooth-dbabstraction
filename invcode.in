@@ -29,6 +29,13 @@ Code3	 	0xa6
 Code4	 	0x38
 InvCode		0x83
 
+Inverter    3600TL
+Code1       0x85
+Code2       0x2e
+Code3       0x3d
+Code4       0x39
+InvCode     0xe2
+
 Inverter	4000TL
 Code1		0x78
 Code2	 	0x21
