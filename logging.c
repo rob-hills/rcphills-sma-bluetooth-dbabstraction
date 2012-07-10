@@ -30,80 +30,80 @@ logging_p logger;
 
 static void logging_timestamp(logging_p self)
 {
-        struct timeval tv;
-        gettimeofday(&tv, 0);
+    struct timeval tv;
+    gettimeofday(&tv, 0);
 
-        struct tm localtime_res;
+    struct tm localtime_res;
     struct tm * result_localtime = localtime_r(&tv.tv_sec, &localtime_res);
 
-        char buf[64];
-        size_t const slen = strftime(buf, 64, "%Y-%m-%dT%H:%M:%S", result_localtime);
+    char buf[64];
+    size_t const slen = strftime(buf, 64, "%Y-%m-%dT%H:%M:%S", result_localtime);
 
-        snprintf(buf + slen, 64 - slen - 1, ".%06ld:", tv.tv_usec);
+    snprintf(buf + slen, 64 - slen - 1, ".%06ld:", tv.tv_usec);
 
-        fprintf(self->logfile, buf);
+    fprintf(self->logfile, buf);
 }
 
 logging_p logging_constructor(FILE * logfile)
 {
-        logging_p self = (logging_p)malloc(sizeof(logging_t));
-        assert(self!=0);
-        self->logfile = logfile;
-        self->loglevel = ll_info;
-        return self;
+    logging_p self = (logging_p)malloc(sizeof(logging_t));
+    assert(self!=0);
+    self->logfile = logfile;
+    self->loglevel = ll_info;
+    return self;
 }
 
 void logging_destructor(logging_p self)
 {
-        fflush(self->logfile);
-        /* Do not close the logfile - this must be done by the caller.
-         * This class just uses the logfile.
-         * This makes it possible to use stdout or stderr for logging.
-         */
-        free(self);
+    fflush(self->logfile);
+    /* Do not close the logfile - this must be done by the caller.
+     * This class just uses the logfile.
+     * This makes it possible to use stdout or stderr for logging.
+     */
+    free(self);
 }
 
 void logging_set_loglevel(logging_p self, loglevel_t loglevel)
 {
-        self->loglevel = loglevel;
+    self->loglevel = loglevel;
 }
 
 void logging_generic(logging_p self, loglevel_t level,
                 char const * format, ...)
 {
-        if(self->loglevel>level) return;
+    if(self->loglevel>level) return;
 
-        va_list argp;
-        va_start(argp, format);
+    va_list argp;
+    va_start(argp, format);
 
-        logging_timestamp(self);
-        fprintf(self->logfile, level2type(level));
-        fprintf(self->logfile, ":");
-        vfprintf(self->logfile, format, argp);
-        fprintf(self->logfile, "\n");
-        fflush(self->logfile);
+    logging_timestamp(self);
+    fprintf(self->logfile, level2type(level));
+    fprintf(self->logfile, ":");
+    vfprintf(self->logfile, format, argp);
+    fprintf(self->logfile, "\n");
+    fflush(self->logfile);
 }
 
 char const * level2type_array[] =
 {
-                "TRACE", "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR", "FATAL"
+    "TRACE", "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR", "FATAL"
 };
 
 char const * const level2type(loglevel_t level)
 {
-        return level2type_array[level];
+    return level2type_array[level];
 }
 
 static void logging_global_logger_destructor()
 {
-        log_debug("Destroying global logger.");
-        logging_destructor(logger);
+    log_debug("Destroying global logger.");
+    logging_destructor(logger);
 }
 
 void log_init()
 {
-        logger = logging_constructor(stderr);
-        log_debug("Created global logger.");
-        atexit(logging_global_logger_destructor);
+    logger = logging_constructor(stderr);
+    log_debug("Created global logger.");
+    atexit(logging_global_logger_destructor);
 }
 
