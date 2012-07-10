@@ -48,9 +48,9 @@ typedef u_int16_t u16;
 
 
 typedef struct{
-    char Inverter[20]; 		/*--inverter 	-i 	*/
+    char Inverter[20]; 		    /*--inverter 	-i 	*/
     char BTAddress[20];         /*--address  	-a 	*/
-    int  bt_timeout;		/*--timeout  	-t 	*/
+    int  bt_timeout;		    /*--timeout  	-t 	*/
     char Password[20];          /*--password 	-p 	*/
     char Config[80];            /*--config   	-c 	*/
     char File[80];              /*--file     	-f 	*/
@@ -102,9 +102,9 @@ char *accepted_strings[] = {
 "$INVCODE",
 "$ARCHCODE",
 "$INVERTERDATA",
-"$CNT",        /*Counter of sent packets*/
+"$CNT",         /*Counter of sent packets*/
 "$TIMEZONE",    /*Timezone seconds +1 from GMT*/
-"$TIMESET"    /*Unknown string involved in time setting*/
+"$TIMESET"      /*Unknown string involved in time setting*/
 };
 
 int cc,debug = 0,verbose=0;
@@ -294,8 +294,8 @@ void tryfcs16(unsigned char *cp, int len)
     /* add on output */
     hlog_trace("String to calculate FCS", cp, len, 0);
     trialfcs = pppfcs16( PPPINITFCS16, stripped, len );
-    trialfcs ^= 0xffff;               /* complement */
-    fl[cc] = (trialfcs & 0x00ff);    /* least significant byte first */
+    trialfcs ^= 0xffff;                 /* complement */
+    fl[cc] = (trialfcs & 0x00ff);       /* least significant byte first */
     fl[cc+1] = ((trialfcs >> 8) & 0x00ff);
     cc+=2;
     log_trace("FCS = [%x%x] [%x]",
