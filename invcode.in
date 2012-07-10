@@ -50,6 +50,13 @@ Code3	 	0x84
 Code4	 	0x3a
 InvCode		0x63
 
+Inverter    8000TL
+Code1       0x3e
+Code2       0x8f
+Code3       0x7c
+Code4       0x38
+InvCode     0x80
+
 Inverter	10000TL
 Code1		0x69
 Code2	 	0x45
