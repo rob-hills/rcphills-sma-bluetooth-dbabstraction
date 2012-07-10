@@ -108,6 +108,7 @@ char *accepted_strings[] = {
 };
 
 int cc,debug = 0,verbose=0;
+int skip_daylight_check = 0;
 unsigned char fl[1024] = { 0 };
 
 
@@ -614,7 +615,8 @@ int auto_set_dates( int * daterange, int mysql, char * datefrom, char * dateto )
 int is_light( )
 /* Check if all data done and past sunset or before sunrise 
  * Returns true if:
- * time is between sunrise and sunset
+ *   - time is between sunrise and sunset
+ *   - skip_daylight_check is true
  */
 {
     char sunrise[25];
@@ -622,6 +624,10 @@ int is_light( )
     char timestring[25];
     time_t timenow = time(NULL);
     struct tm now = *(localtime( &timenow ) );
+    if (skip_daylight_check != 0) {
+        log_debug("Force option specified, skipping Daylight check.");
+        return 1;
+    }
     if(! db_fetch_almanac( &now,  sunrise,  sunset ) ) {
         return 1; //can't tell - no sunrise/set in db
     }
@@ -1056,6 +1062,7 @@ void PrintHelp()
     printf( "Usage: smatool [OPTION]\n" );
     printf( "  -v,  --verbose                           Give more verbose output\n" );
     printf( "  -d,  --debug                             Show debug\n" );
+    printf( "  -f,  --force                             Force inverter query, even if not daytime\n" );
     printf( "  -c,  --config CONFIGFILE                 Set config file default smatool.conf\n" );
     printf( "       --test                              Run in test mode - don't update data\n" );
     printf( "\n" );
@@ -1092,7 +1099,9 @@ void PrintHelp()
 }
 
 /* Init Config to default values */
-int ReadCommandConfig( ConfType *conf, int argc, char **argv, char * datefrom, char * dateto, int * verbose, int * debug, int * repost, int * test, int * install, int * update )
+int ReadCommandConfig( ConfType *conf, int argc, char **argv, char *datefrom, 
+                        char *dateto, int *verbose, int *debug, int *skip_daylight_check, 
+                        int *repost, int *test, int *install, int *update )
 {
     int    i;
 
@@ -1101,6 +1110,7 @@ int ReadCommandConfig( ConfType *conf, int argc, char **argv, char * datefrom, c
     {
         if ((strcmp(argv[i],"-v")==0)||(strcmp(argv[i],"--verbose")==0)) (*verbose) = 1;
         else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--debug")==0)) (*debug) = 1;
+        else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--force")==0)) (*skip_daylight_check) = 1;
         else if ((strcmp(argv[i],"-c")==0)||(strcmp(argv[i],"--config")==0)) {
             i++;
             if(i<argc){
@@ -1447,13 +1457,15 @@ int main(int argc, char **argv)
     // set config to defaults
     InitConfig( &conf, datefrom, dateto );
     // read command arguments needed so can get config
-    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, &repost, &test, &install, &update ) < 0 )
+    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
+            &skip_daylight_check, &repost, &test, &install, &update ) < 0 )
         exit(0);
     // read Config file
     if( GetConfig( &conf ) < 0 )
         exit(-1);
     // read command arguments  again - they overide config
-    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, &repost, &test, &install, &update ) < 0 )
+    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
+            &skip_daylight_check, &repost, &test, &install, &update ) < 0 )
         exit(0);
     // read Inverter Setting file
     if( GetInverterSetting( &conf ) < 0 )
