@@ -1337,7 +1337,6 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
     {
 	    start_datetime = db_row_datetime_data( row, 0  );
 	    // r2 service - key and sid are sent as headers, not in the url
-	    // string_end = sprintf(posturl,"%s?key=%s&sid=%s&data=",pvOutputUrl,pvOutputKey, pvOutputSid);
 	    string_end = sprintf(posturl,"%s?data=",pvOutputUrl);
 	    startOfDayWh = db_get_start_of_day_energy_value(&start_datetime);
     }
