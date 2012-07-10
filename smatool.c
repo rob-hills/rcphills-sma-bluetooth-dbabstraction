@@ -1031,7 +1031,6 @@ int GetInverterSetting( ConfType *conf )
        log_error( " Error ! not all codes set" );
        log_error( " Code [0]: %d, Code[1]: %d, Code[2]: %d, Code[3]: %d, ArchiveCode: %d", 
                     conf->InverterCode[0], conf->InverterCode[1], conf->InverterCode[2], conf->InverterCode[3], conf->ArchiveCode );
-       fclose( fp );
        return( -1 );
     }
     return( 0 );
