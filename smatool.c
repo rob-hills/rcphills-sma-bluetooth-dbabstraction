@@ -964,7 +964,14 @@ int GetInverterSetting( ConfType *conf )
     char        line[400];
     char        variable[400];
     char        value[400];
+    /* This variable flags that the current scan process
+     * is inside the section for the sought inverter.
+     */
     int         found_inverter=0;
+    /* This variable flags that the inverter was found
+     * in the configuration file.
+     */
+    int     inverter_in_configuration_file = 0;
 
     if (strlen(conf->Setting) > 0 )
     {
@@ -998,6 +1005,7 @@ int GetInverterSetting( ConfType *conf )
                         if( strcmp( value, conf->Inverter ) == 0 ) 
                         {
                             found_inverter = 1;
+                            inverter_in_configuration_file = 1;
                             log_debug( "Found inverter: %s", conf->Inverter );
                         } else
                             found_inverter = 0;
@@ -1018,10 +1026,16 @@ int GetInverterSetting( ConfType *conf )
             }
         }
     }
-    if ( !found_inverter )
-        log_error ( " Could not locate your inverter [%s] in invcode.in", conf->Inverter );
 
     fclose( fp );
+
+    if ( !inverter_in_configuration_file ) {
+        log_error ( "The inverter [%s] was not found in the invcode.in "
+                    "inverter configuration file.  Please check the "
+                    "configuration.", conf->Inverter );
+        return -1;
+    }
+
     if(( conf->InverterCode[0] == 0 ) ||
        ( conf->InverterCode[1] == 0 ) ||
        ( conf->InverterCode[2] == 0 ) ||
