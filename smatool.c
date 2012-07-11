@@ -107,11 +107,9 @@ char *accepted_strings[] = {
 "$TIMESET"      /*Unknown string involved in time setting*/
 };
 
-int cc,debug = 0,verbose=0;
-loglevel_t log_level = ll_trace;  /* Start with most detailed */
+int cc;
 int skip_daylight_check = 0;
 unsigned char fl[1024] = { 0 };
-
 
 static u16 fcstab[256] = {
    0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
@@ -375,7 +373,7 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
     (*rr) = 0;
         for( i=0; i<sizeof(header); i++ ) {
             received[(*rr)] = header[i];
-        if (debug == 1) printf("%02x ", received[(*rr)]);
+            log_debug("%02x ", received[(*rr)]);
             (*rr)++;
         }
     }
@@ -429,7 +427,7 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
         else { 
                received[(*rr)] = buf[i];
         }
-        if (debug == 1) printf("%02x ", received[(*rr)]);
+        log_debug("%02x ", received[(*rr)]);
         (*rr)++;
     }
     fix_length_received( received, rr );
@@ -460,12 +458,12 @@ read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int c
                 
     (*terminated) = 0; // Tag to tell if string has 7e termination
     // first read the header to get the record length
-    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
+    if (FD_ISSET((*s), &readfds)) {    // did we receive anything within 5 seconds
         bytes_read = recv((*s), header, sizeof(header), 0); //Get length of string
-    (*rr) = 0;
+        (*rr) = 0;
         for( i=0; i<sizeof(header); i++ ) {
             received[(*rr)] = header[i];
-        if (debug == 2) printf("%02x ", received[i]);
+            log_debug("%02x ", received[i]);
             (*rr)++;
         }
     }
@@ -519,8 +517,8 @@ read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int c
             else { 
                 received[(*rr)] = buf[i];
             }
-            if (debug == 2) printf("%02x ", received[(*rr)]);
-                (*rr)++;
+            log_trace("%02x ", received[(*rr)]);
+            (*rr)++;
         }
         fix_length_received( received, rr );
         log_trace("received", received, *rr, 0);
@@ -1065,6 +1063,7 @@ void PrintHelp()
     printf( "Usage: smatool [OPTION]\n" );
     printf( "  -v,  --verbose                           Give more verbose output\n" );
     printf( "  -d,  --debug                             Show debug\n" );
+    printf( "       --trace                             Show trace\n" );
     printf( "  -f,  --force                             Force inverter query, even if not daytime\n" );
     printf( "  -c,  --config CONFIGFILE                 Set config file default smatool.conf\n" );
     printf( "       --test                              Run in test mode - don't update data\n" );
@@ -1103,17 +1102,21 @@ void PrintHelp()
 
 /* Init Config to default values */
 int ReadCommandConfig( ConfType *conf, int argc, char **argv, char *datefrom, 
-                        char *dateto, int *verbose, int *debug, int *skip_daylight_check, 
-                        int *repost, int *test, int *install, int *update, loglevel_t *log_level )
+                        char *dateto, loglevel_t *loglevel, int *skip_daylight_check, 
+                        int *repost, int *test, int *install, int *update )
 {
     int    i;
 
     // these need validation checking at some stage TODO
     for (i=1;i<argc;i++)            //Read through passed arguments
     {
-        if ((strcmp(argv[i],"-v")==0)||(strcmp(argv[i],"--verbose")==0)) (*verbose) = 1;
-        else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--debug")==0)) (*debug) = 1;
-        else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--force")==0)) (*skip_daylight_check) = 1;
+        if(strcmp(argv[i],"-v")==0 || strcmp(argv[i],"--verbose")==0) {
+            if(*loglevel>ll_verbose) *loglevel = ll_verbose;
+        } else if ((strcmp(argv[i],"-d")==0)||(strcmp(argv[i],"--debug")==0)) {
+            if(*loglevel>ll_debug) *loglevel = ll_debug;
+        } else if( strcmp(argv[i],"--trace")==0) {
+            if(*loglevel>ll_trace) *loglevel = ll_trace;
+        } else if ((strcmp(argv[i],"-f")==0)||(strcmp(argv[i],"--force")==0)) (*skip_daylight_check) = 1;
         else if ((strcmp(argv[i],"-c")==0)||(strcmp(argv[i],"--config")==0)) {
             i++;
             if(i<argc){
@@ -1238,23 +1241,7 @@ int ReadCommandConfig( ConfType *conf, int argc, char **argv, char *datefrom,
         }
     }
 
-    /* Set the log level, "info" if none specified */
-    char log_level_text[10];
-    strcpy(log_level_text, "TRACE");
-    if ((*verbose) == 1) {
-        (*log_level) = ll_verbose;
-        strcpy(log_level_text, "VERBOSE");
-    }
-    else if ((*debug) == 1) {
-        (*log_level) = ll_debug;
-        strcpy(log_level_text, "DEBUG");
-    }
-    else {
-        (*log_level) = ll_info;
-        strcpy(log_level_text, "INFO");
-    }
-
-    log_info ( "Log Level set to [%s]", log_level_text );
+    log_info ( "Log Level set to [%s]", level2type( *loglevel ) );
 
     return( 0 );
 }
@@ -1267,7 +1254,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
     return written;
 }
 
-int curl_post_this_query( char *compurl, char *pvOutputKey, char *pvOutputSid )
+int curl_post_this_query( char *compurl, char *pvOutputKey, char *pvOutputSid, loglevel_t loglevel)
 {
   CURL *curl;
   CURLcode result;
@@ -1278,7 +1265,7 @@ int curl_post_this_query( char *compurl, char *pvOutputKey, char *pvOutputSid )
   curl = curl_easy_init();
   if (curl){
     log_debug( "url = %s",compurl );
-    if (debug == 1){
+    if (loglevel >= ll_debug){
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curlErrorText);
     }
 
@@ -1307,7 +1294,7 @@ int curl_post_this_query( char *compurl, char *pvOutputKey, char *pvOutputSid )
   return -1;
 }
 
-void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid, int repost, char *datefrom, char *dateto)
+void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid, int repost, char *datefrom, char *dateto, loglevel_t loglevel)
 {
   time_t prior = time(NULL) - ( 60 * 60 * 24 * 14 ); //up to 14 days before now (r2 service)
   struct tm from_datetime = *(localtime( &prior ) );
@@ -1364,7 +1351,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
     if( 30 == rows_processed || 0 == more_rows  )
     {
       //if post requires last ; to be stripped... posturl[string_end] = '\0';
-      curlResult = curl_post_this_query(posturl, pvOutputKey, pvOutputSid);
+      curlResult = curl_post_this_query(posturl, pvOutputKey, pvOutputSid, loglevel);
       if ( curlResult == 0 )
       {
         db_set_data_posted(&start_datetime, &this_datetime );  //date range covering possibly 1, but at most 30, values
@@ -1448,9 +1435,9 @@ int main(int argc, char **argv)
     } *archdatalist;
 
     char sunrise_time[6],sunset_time[6];
+    loglevel_t loglevel = ll_info;
    
     log_init();
-    logging_set_loglevel(logger, log_level);
     log_info("Starting pvlogger");
 
     memset(received,0,1024);
@@ -1461,18 +1448,18 @@ int main(int argc, char **argv)
     // set config to defaults
     InitConfig( &conf, datefrom, dateto );
     // read command arguments needed so can get config
-    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
-            &skip_daylight_check, &repost, &test, &install, &update, &log_level ) < 0 )
+    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &loglevel, 
+            &skip_daylight_check, &repost, &test, &install, &update) < 0 )
         exit(0);
     // read Config file
     if( GetConfig( &conf ) < 0 )
         exit(-1);
     // read command arguments  again - they overide config
-    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &verbose, &debug, 
-            &skip_daylight_check, &repost, &test, &install, &update, &log_level ) < 0 )
+    if( ReadCommandConfig( &conf, argc, argv, datefrom, dateto, &loglevel, 
+            &skip_daylight_check, &repost, &test, &install, &update) < 0 )
         exit(0);
     // Log level may have been reset by command line.
-    logging_set_loglevel(logger, log_level);
+    logging_set_loglevel(logger, loglevel);
 
     // read Inverter Setting file
     if( GetInverterSetting( &conf ) < 0 )
@@ -2046,7 +2033,7 @@ int main(int argc, char **argv)
                         if(( received[60] == 0x6d )&&( received[61] == 0x23 ))
                         {
                             memcpy(timestr,received+63,24);
-                            log_debug("extracting timestring\n");
+                            log_debug("extracting timestring");
                             memcpy(timeset,received+79,4);
                             idate=ConvertStreamtoTime( received+63,4, &idate );
                             /* Allow delay for inverter to be slow */
@@ -2256,7 +2243,7 @@ int main(int argc, char **argv)
     archdatalen=0;
     free(last_sent);
     if ((post ==1)&&(mysql==1)&&(error==0)){
-      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid, repost, datefrom, dateto);
+      post_interval_data( conf.PVOutputURL, conf.PVOutputKey, conf.PVOutputSid, repost, datefrom, dateto, loglevel);
     }
 
 }
