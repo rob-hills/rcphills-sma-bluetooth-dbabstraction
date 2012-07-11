@@ -4,7 +4,7 @@ CFLAGS = -ggdb -Wall -pedantic -std=c99
 LIBS = -lbluetooth -lcurl -lm
 
 MAIN = smatool
-MAIN_OBJS = hexdump.o sunlight.o smatool.o logging.o
+MAIN_OBJS = hexdump.o sunlight.o smatool.o logging.o bluetooth.o
 
 TEST = db_test
 TEST_OBJ = db_test.o
