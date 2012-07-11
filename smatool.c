@@ -1389,7 +1389,7 @@ void post_interval_data(char *pvOutputUrl, char *pvOutputKey, char *pvOutputSid,
         rows_processed = 0;
         sleep(2); //pvoutput api says we can't post more than once a second.
       } else {
-          log_info( "NOT sleeping after a post, CURL result was %d",curlResult );
+          log_error( "CURL post failed, CURL result was %d",curlResult );
       }
     }
   }
