@@ -198,6 +198,7 @@ void add_escapes(unsigned char *cp, int *len)
           cp[i+1] = cp[i]^0x20;
           cp[i]=0x7d;
           (*len)++;
+          break;
       }
    }
 }
@@ -253,32 +254,6 @@ void fix_length_send(unsigned char *cp, int *len)
                 break;
       }
       log_debug("new sum [%x]", cp[1]+cp[3]);
-}
-            
-/*
- * Recalculate and update length to correct for escapes
- */
-void fix_length_received(unsigned char *received, int *len)
-{
-    int        delta=0;
-    int        sum;
-
-    if( received[1] != (*len) ) {
-        sum = received[1]+received[3];
-        log_debug("sum [%x]", sum );
-        delta = (*len) - received[1];
-        log_debug("length change from [%x] to [%x]", received[1], (*len) );
-        if(( received[3] != 0x13 )&&( received[3] != 0x14 )) { 
-            received[1] = (*len);
-            switch( received[1] ) {
-                case 0x52: received[3]=0x2c; break;
-                case 0x5a: received[3]=0x24; break;
-                case 0x66: received[3]=0x1a; break;
-                case 0x6a: received[3]=0x14; break;
-                default:  received[3]=sum-received[1]; break;
-            }
-        }
-    }
 }
 
 /*
@@ -342,6 +317,7 @@ unsigned char conv(char *nn){
 
         default:
         tt = nn[i] - 48;
+        break;
         }
         res = res + (tt * pow(16,1-i));
         }
@@ -399,7 +375,8 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
         hlog_debug("Receiving - body  ", buf, bytes_read, 0);
 
         if ((cc==bytes_read)&&(memcmp(received,last_sent,cc) == 0)){
-           printf( "ERROR received what we sent!" ); getchar();
+           log_error( "ERROR received what we sent!" );
+           abort;
            //Need to do something
         }
         if( buf[ bytes_read-1 ] == 0x7e )
@@ -434,94 +411,6 @@ check_send_error( ConfType * conf, int *s, int *rr, unsigned char *received, int
     hlog_debug("received", received, *rr, 0);
 
     (*already_read)=1;
-    }    
-    return 0;
-}
-
-int
-read_bluetooth( ConfType * conf, int *s, int *rr, unsigned char *received, int cc, unsigned char *last_sent, int *terminated )
-{
-    int bytes_read,i;
-    unsigned char buf[1024]; /*read buffer*/
-    unsigned char header[3]; /*read buffer*/
-    struct timeval tv;
-    fd_set readfds;
-
-    tv.tv_sec = conf->bt_timeout; // set timeout of reading
-    tv.tv_usec = 0;
-    memset(buf,0,1024);
-
-    FD_ZERO(&readfds);
-    FD_SET((*s), &readfds);
-                
-    select((*s)+1, &readfds, NULL, NULL, &tv);
-                
-    (*terminated) = 0; // Tag to tell if string has 7e termination
-    // first read the header to get the record length
-    if (FD_ISSET((*s), &readfds)) {    // did we receive anything within 5 seconds
-        bytes_read = recv((*s), header, sizeof(header), 0); //Get length of string
-        (*rr) = 0;
-        for( i=0; i<sizeof(header); i++ ) {
-            received[(*rr)] = header[i];
-            log_debug("%02x ", received[i]);
-            (*rr)++;
-        }
-    }
-    else
-    {
-       log_warning("Timeout reading bluetooth socket");
-       (*rr) = 0;
-       memset(received,0,1024);
-       return -1;
-    }
-    if (FD_ISSET((*s), &readfds)){    // did we receive anything within 5 seconds
-        bytes_read = recv((*s), buf, header[1]-3, 0); //Read the length specified by header
-    }
-    else
-    {
-       log_warning("Timeout reading bluetooth socket");
-       (*rr) = 0;
-       memset(received,0,1024);
-       return -1;
-    }
-    if ( bytes_read > 0){
-
-        hlog_debug("Receiving - header", header, sizeof(header), 12);
-        hlog_debug("Receiving - body  ", buf, bytes_read, 0);
-        if ((cc==bytes_read)&&(memcmp(received,last_sent,cc) == 0)){
-           printf( "ERROR received what we sent!" ); getchar();
-           //Need to do something
-        }
-        if( buf[ bytes_read-1 ] == 0x7e )
-           (*terminated) = 1;
-        else
-           (*terminated) = 0;
-        for (i=0;i<bytes_read;i++){ //start copy the rec buffer in to received
-            if (buf[i] == 0x7d){ //did we receive the escape char
-                switch (buf[i+1]){   // act depending on the char after the escape char
-                        
-                    case 0x5e :
-                        received[(*rr)] = 0x7e;
-                        break;
-                                       
-                    case 0x5d :
-                        received[(*rr)] = 0x7d;
-                        break;
-                                    
-                    default :
-                        received[(*rr)] = buf[i+1] ^ 0x20;
-                        break;
-                }
-                i++;
-            }
-            else { 
-                received[(*rr)] = buf[i];
-            }
-            log_trace("%02x ", received[(*rr)]);
-            (*rr)++;
-        }
-        fix_length_received( received, rr );
-        log_trace("received", received, *rr, 0);
     }    
     return 0;
 }
@@ -854,7 +743,8 @@ ReadStream( ConfType * conf, int * s, unsigned char * stream, int * streamlen, u
      finished_record = 0;
      if( (*terminated) == 0 )
      {
-         read_bluetooth( conf, s, streamlen, stream, cc, last_sent, terminated );
+         read_bluetooth( conf->bt_timeout, *s, streamlen, 
+                            stream, cc, last_sent, terminated );
          i=18;
      }
      else
@@ -1599,6 +1489,7 @@ int main(int argc, char **argv)
                     default :
                     fl[cc] = conv(lineread);
                     cc++;
+                    break;
                     }
 
                 } while (strcmp(lineread,"$END"));
@@ -1613,7 +1504,7 @@ int main(int argc, char **argv)
                 do {
                     if( already_read == 0 )
                         rr=0;
-                    if(( already_read == 0 )&&( read_bluetooth( &conf, &s, &rr, received, cc, last_sent, &terminated ) != 0 ))
+                    if(( already_read == 0 )&&( read_bluetooth( conf.bt_timeout, s, &rr, received, cc, last_sent, &terminated ) != 0 ))
                     {
                         already_read=0;
                         fseek( fp, returnpos, 0 );
@@ -1909,6 +1800,7 @@ int main(int argc, char **argv)
                     default :
                     fl[cc] = conv(lineread);
                     cc++;
+                    break;
                     }
 
                 } while (strcmp(lineread,"$END"));
@@ -1930,138 +1822,136 @@ int main(int argc, char **argv)
                 cc = 0;
                 do{
                     lineread = strtok(NULL," ;");
-                    //printf( "\nselect=%d", select_str(lineread)); 
                     switch(select_str(lineread)) {
-                                  
-                                    case 3: // Extract Serial of Inverter
-                                   
-                                    data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
-                                    /*
-                                    printf( "1.len=%d data=", datalen );
-                                    for( i=0; i< datalen; i++ )
-                                      printf( "%02x ", data[i] );
-                                    printf( "\n" );
-                                    */
-                                    serial[3]=data[19];
-                                    serial[2]=data[18];
-                                    serial[1]=data[17];
-                                    serial[0]=data[16];
-                                    log_verbose( "serial=%02x:%02x:%02x:%02x\n",
-                                                    serial[3]&0xff,serial[2]&0xff,
-                                                    serial[1]&0xff,serial[0]&0xff ); 
-                                    free( data );
-                                    break;
+
+                        case 3: // Extract Serial of Inverter
+                            data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
+                            /*
+                            printf( "1.len=%d data=", datalen );
+                            for( i=0; i< datalen; i++ )
+                              printf( "%02x ", data[i] );
+                            printf( "\n" );
+                            */
+                            serial[3]=data[19];
+                            serial[2]=data[18];
+                            serial[1]=data[17];
+                            serial[0]=data[16];
+                            log_verbose( "serial=%02x:%02x:%02x:%02x\n",
+                                            serial[3]&0xff,serial[2]&0xff,
+                                            serial[1]&0xff,serial[0]&0xff ); 
+                            free( data );
+                            break;
                                     
-                    case 9: // extract Time from Inverter
-                                    idate = (received[66] * 16777216 ) + (received[65] *65536 )+ (received[64] * 256) + received[63];
-                                                    loctime = localtime(&idate);
-                                                    day = loctime->tm_mday;
-                                                    month = loctime->tm_mon +1;
-                                                    year = loctime->tm_year + 1900;
-                                                    hour = loctime->tm_hour;
-                                                    minute = loctime->tm_min; 
-                                                    second = loctime->tm_sec; 
-                                    log_info( "Date power = %d/%d/%4d %02d:%02d:%02d",day, month, year, hour, minute,second);
+                        case 9: // extract Time from Inverter
+                            idate = (received[66] * 16777216 ) + (received[65] *65536 )+ (received[64] * 256) + received[63];
+                            loctime = localtime(&idate);
+                            day = loctime->tm_mday;
+                            month = loctime->tm_mon +1;
+                            year = loctime->tm_year + 1900;
+                            hour = loctime->tm_hour;
+                            minute = loctime->tm_min; 
+                            second = loctime->tm_sec; 
+                            log_info( "Date power = %d/%d/%4d %02d:%02d:%02d",day, month, year, hour, minute,second);
 #if 0
                     /* This was commented out. */
                     currentpower = (received[72] * 256) + received[71];
                     printf("Current power = %i Watt\n",currentpower);
 #endif
-                    break;
-                    case 5: // extract current power $POW
-                                    data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
-                                    if( (data+3)[0] == 0x08 )
-                                        gap = 40; 
-                                    if( (data+3)[0] == 0x10 )
-                                        gap = 40; 
-                                    if( (data+3)[0] == 0x40 )
-                                        gap = 28;
-                                    if( (data+3)[0] == 0x00 )
-                                        gap = 28;
-                                    for ( i = 0; i<datalen; i+=gap ) 
-                                    {
-                                       idate=ConvertStreamtoTime( data+i+4, 4, &idate );
-                                       loctime = localtime(&idate);
-                                       day = loctime->tm_mday;
-                                       month = loctime->tm_mon +1;
-                                       year = loctime->tm_year + 1900;
-                                       hour = loctime->tm_hour;
-                                       minute = loctime->tm_min; 
-                                       second = loctime->tm_sec; 
-                                       ConvertStreamtoFloat( data+i+8, 3, &currentpower_total );
-                                       return_key=-1;
-                                       for( j=0; j<num_return_keys; j++ )
-                                       {
-                                          if(( (data+i+1)[0] == returnkeylist[j].key1 )&&((data+i+2)[0] == returnkeylist[j].key2)) {
-                                              return_key=j;
-                                              break;
-                                          }
-                                       }
-                                       if( return_key >= 0 )
-                                           log_info("%d-%02d-%02d %02d:%02d:%02d %-20s = %.0f %-20s", year, month, day, hour, minute, second,
-                                                     returnkeylist[return_key].description, currentpower_total/returnkeylist[return_key].divisor, 
-                                                     returnkeylist[return_key].units );
-                                       else
-                                           log_info("%d-%02d-%02d %02d:%02d:%02d NO DATA for %02x %02x = %.0f NO UNITS", year, month, day, hour,
-                                                     minute, second, (data+i+1)[0], (data+i+1)[1], currentpower_total );
-                                    }
-                                    free( data );
-                    break;
+                            break;
 
-                    case 6: // extract total energy collected today
-                              
-                        gtotal = (received[69] * 65536) + (received[68] * 256) + received[67];
-                        gtotal = gtotal / 1000;
-                        log_info("G total so far = %.2f kWh",gtotal);
-
-                        dtotal = (received[84] * 256) + received[83];
-                        dtotal = dtotal / 1000;
-                        log_info("E total today = %.2f kWh",dtotal);
-                        break;        
-
-                    case 7: // extract 2nd address
-                        memcpy(address2,received+26,6);
-                        log_debug("address 2");
-                        break;
-                    
-                    case 8: // extract bluetooth channel
-                        memcpy(chan,received+22,1);
-                        log_debug("Bluetooth channel [%i]", chan[0]);
-                        break;
-
-                    case 12: // extract time strings $TIMESTRING
-                        if(( received[60] == 0x6d )&&( received[61] == 0x23 ))
-                        {
-                            memcpy(timestr,received+63,24);
-                            log_debug("extracting timestring");
-                            memcpy(timeset,received+79,4);
-                            idate=ConvertStreamtoTime( received+63,4, &idate );
-                            /* Allow delay for inverter to be slow */
-                            if( reporttime > idate ) {
-                               log_debug("delay [5 seconds]");
-                               sleep( 5 );
+                        case 5: // extract current power $POW
+                            data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
+                            if( (data+3)[0] == 0x08 )
+                                gap = 40; 
+                            if( (data+3)[0] == 0x10 )
+                                gap = 40; 
+                            if( (data+3)[0] == 0x40 )
+                                gap = 28;
+                            if( (data+3)[0] == 0x00 )
+                                gap = 28;
+                            for ( i = 0; i<datalen; i+=gap ) 
+                            {
+                               idate=ConvertStreamtoTime( data+i+4, 4, &idate );
+                               loctime = localtime(&idate);
+                               day = loctime->tm_mday;
+                               month = loctime->tm_mon +1;
+                               year = loctime->tm_year + 1900;
+                               hour = loctime->tm_hour;
+                               minute = loctime->tm_min; 
+                               second = loctime->tm_sec; 
+                               ConvertStreamtoFloat( data+i+8, 3, &currentpower_total );
+                               return_key=-1;
+                               for( j=0; j<num_return_keys; j++ )
+                               {
+                                  if(( (data+i+1)[0] == returnkeylist[j].key1 )&&((data+i+2)[0] == returnkeylist[j].key2)) {
+                                      return_key=j;
+                                      break;
+                                  }
+                               }
+                               if( return_key >= 0 )
+                                   log_info("%d-%02d-%02d %02d:%02d:%02d %-20s = %.0f %-20s", year, month, day, hour, minute, second,
+                                             returnkeylist[return_key].description, currentpower_total/returnkeylist[return_key].divisor, 
+                                             returnkeylist[return_key].units );
+                               else
+                                   log_info("%d-%02d-%02d %02d:%02d:%02d NO DATA for %02x %02x = %.0f NO UNITS", year, month, day, hour,
+                                             minute, second, (data+i+1)[0], (data+i+1)[1], currentpower_total );
                             }
-                        }
-                        else
-                        {
-                            memcpy(timestr,received+63,24);
-                            log_debug("bad extracting timestring");
-                            already_read=0;
-                            fseek( fp, returnpos, 0 );
-                            linenum = returnline;
-                            found=0;
-                            if( archdatalen > 0 )
-                               free( archdatalist );
-                            archdatalen=0;
-                            strcpy( lineread, "" );
-                            failedbluetooth++;
-                            if( failedbluetooth > 10 )
-                                exit(-1);
-                            goto start;
-                            //exit(-1);
-                        }
+                            free( data );
+                            break;
+
+                        case 6: // extract total energy collected today
+                            gtotal = (received[69] * 65536) + (received[68] * 256) + received[67];
+                            gtotal = gtotal / 1000;
+                            log_info("G total so far = %.2f kWh",gtotal);
+
+                            dtotal = (received[84] * 256) + received[83];
+                            dtotal = dtotal / 1000;
+                            log_info("E total today = %.2f kWh",dtotal);
+                            break;        
+
+                        case 7: // extract 2nd address
+                            memcpy(address2,received+26,6);
+                            log_debug("address 2");
+                            break;
+                    
+                        case 8: // extract bluetooth channel
+                            memcpy(chan,received+22,1);
+                            log_debug("Bluetooth channel [%i]", chan[0]);
+                            break;
+
+                        case 12: // extract time strings $TIMESTRING
+                            if(( received[60] == 0x6d )&&( received[61] == 0x23 ))
+                            {
+                                memcpy(timestr,received+63,24);
+                                log_debug("extracting timestring");
+                                memcpy(timeset,received+79,4);
+                                idate=ConvertStreamtoTime( received+63,4, &idate );
+                                /* Allow delay for inverter to be slow */
+                                if( reporttime > idate ) {
+                                   log_debug("delay [5 seconds]");
+                                   sleep( 5 );
+                                }
+                            }
+                            else
+                            {
+                                memcpy(timestr,received+63,24);
+                                log_debug("bad extracting timestring");
+                                already_read=0;
+                                fseek( fp, returnpos, 0 );
+                                linenum = returnline;
+                                found=0;
+                                if( archdatalen > 0 )
+                                   free( archdatalist );
+                                archdatalen=0;
+                                strcpy( lineread, "" );
+                                failedbluetooth++;
+                                if( failedbluetooth > 10 )
+                                    exit(-1);
+                                goto start;
+                                //exit(-1);
+                            }
                                     
-                    break;
+                            break;
 
                     case 17: // Test data
                             data = ReadStream( &conf, &s, received, &rr, data, &datalen, last_sent, cc, &terminated, &togo );
@@ -2124,7 +2014,7 @@ int main(int argc, char **argv)
                            if( togo == 0 ) 
                               finished=1;
                            else
-                              if( read_bluetooth( &conf, &s, &rr, received, cc, last_sent, &terminated ) != 0 )
+                              if( read_bluetooth( conf.bt_timeout, s, &rr, received, cc, last_sent, &terminated ) != 0 )
                               {
                                  fseek( fp, returnpos, 0 );
                                  linenum = returnline;

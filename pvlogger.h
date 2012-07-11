@@ -28,12 +28,10 @@ char * sunrise( float latitude, float longitude );
 
 /* bluetooth.c */
 
-# if 0
 int read_bluetooth(time_t const bt_timeout, int const sfd, int *rr,
                 unsigned char *received, int cc, unsigned char *last_sent,
                 int *terminated );
 void fix_length_received(unsigned char *received, int *len);
-#endif
 
 #endif
 
