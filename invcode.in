@@ -1,6 +1,13 @@
 # Model specific data bluetooth inverter logger
 #
 #
+Inverter	1600TL
+Code1		0xd2  
+Code2	 	0xe1  
+Code3	 	0x46  
+Code4	 	0x37  
+InvCode		0xFF
+
 Inverter	1700TL
 Code1		0x12
 Code2	 	0x1a
@@ -8,11 +15,32 @@ Code3	 	0xd9
 Code4	 	0x38
 InvCode		0x63
 
+Inverter	2000TLHF
+Code1		0x1b
+Code2		0xb1
+Code3		0xa6
+Code4		0x38
+InvCode		0x83
+
 Inverter	2100TL
 Code1		0x17
 Code2	 	0x97
 Code3	 	0x51
 Code4	 	0x38
+InvCode		0x63
+
+Inverter	3000HF
+Code1		0x74
+Code2		0xbc
+Code3		0xdb
+Code4		0x37
+InvCode		0x83
+
+Inverter	3000HF30
+Code1		0x8d
+Code2		0xe5
+Code3		0x51
+Code4		0x36
 InvCode		0x63
 
 Inverter	3000TL
@@ -43,12 +71,33 @@ Code3	 	0xbf
 Code4	 	0x3a
 InvCode		0x4e
 
+Inverter	4000TL21
+Code1		0x38
+Code2		0x4f
+Code3		0xce
+Code4		0x35
+InvCode		0x8a
+
 Inverter	5000TL
 Code1		0x3f
 Code2	 	0x10
 Code3	 	0xfb
 Code4	 	0x39
 InvCode		0x4e
+
+Inverter	5000TL20
+Code1		0xAD
+Code2	 	0x52
+Code3	 	0xB2
+Code4	 	0x3A
+InvCode		0x4E
+
+Inverter	5000TL21
+Code1		0xd6
+Code2		0x12  
+Code3		0x70
+Code4		0x39
+InvCode		0x8a
 
 Inverter	7000
 Code1		0xcf
@@ -69,6 +118,13 @@ Code1		0x69
 Code2	 	0x45
 Code3	 	0x32
 Code4	 	0x39
+InvCode		0x80
+
+Inverter	12000TL
+Code1		0x45
+Code2		0xaf
+Code3		0x6e
+Code4		0x3a
 InvCode		0x80
 
 Inverter	XXXXTL
