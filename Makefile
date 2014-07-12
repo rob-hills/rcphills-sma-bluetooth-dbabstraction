@@ -1,6 +1,7 @@
 RM = rm
 CC = gcc
-CFLAGS = -ggdb -Wall -pedantic -std=c99
+# CFLAGS = -ggdb -Wall -pedantic -std=c99
+CFLAGS = -ggdb -Wall
 LIBS = -lbluetooth -lcurl -lm
 
 MAIN = smatool
