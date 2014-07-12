@@ -299,10 +299,15 @@ a[href] {
   <p><strong>Line 25:</strong> MySqlHost - this is the name of the computer that will contain the database.  Almost certainly it will be the same computer as you're
      running your program on which is referred to by the nickname &quot;localhost&quot; and will look like this:</p>
   <code>MySqlHost&nbsp;&nbsp;localhost</code>
-  <p><strong>Line 26:</strong> MySqlDatabase - this contains the full name of your database, including the folder that it lives in.  If you&apos;re not sure,
-     simply use the following example, which will create a database named &quot;smatool.sqlite3.db&quot; in a folder named &quot;smatool&quot; in your home
+  <p><strong>Line 26:</strong> MySqlDatabase - this contains the full name of your database, including the folder that it lives in.  If you&apos;re not sure, use your home directory as I have in the following example, which will create a database named &quot;smatool.sqlite3.db&quot; in a folder named &quot;smatool&quot; in <em>my</em> home
      directory:</p>
-  <code>MySqlDatabase&nbsp;&nbsp;~/smatool/smatool.sqlite3.db</code>
+  <code>MySqlDatabase&nbsp;&nbsp;/home/rob/smatool/smatool.sqlite3.db</code>
+  <p>If you're not sure of the path to your home directory, open a fresh terminal (&lt;Ctrl&gt;&lt;Alt&gt;T) which should open in your home
+  directory by default.  Then type:</p>
+  <code>pwd</code>
+  <p>This should return a path that starts with &quot;/home/&quot; and ends with your username.  Once you've worked out your username, type: </p>
+  <code>exit</code>
+  <p>to close the extra terminal window and then replace my home directory (&quot;/home/rob&quot;) in your MySqlDatabase setting with your own.</p>
   <p><strong>Lines 27 and 28:</strong> Username and Password.  SQLite databases usually don't have usernames and passwords, however if you leave these empty,
      the program won&apos;t work.  I simply put an &quot;x&quot; for each of them, like this:</p>
   <code>MySqlUser x<br />
@@ -319,6 +324,7 @@ a[href] {
      It is called the &quot;System ID&quot;.  I suggest that you copy it from your settings page and paste it into your configuration file.  After you've done this,
      it should look something like this:</p>
   <code>PVOutputSid	9068</code>
+  <p><strong>Don't forget to save your Configuration file before proceding to the next step.</strong></p>
   <li><h2>Create your database</h2></li>
   <p>The sma-bluetooth program needs a database to store values that it extracts from your inverter.  It will create the database for you if you type (copy/paste) the following into your terminal window:</p>
   <code>./smatool --INSTALL</code>
