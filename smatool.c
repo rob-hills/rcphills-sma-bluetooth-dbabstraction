@@ -891,9 +891,9 @@ int GetInverterSetting( ConfType *conf )
             {
                 strcpy( value, "" ); //Null out value
                 sscanf( line, "%s %s", variable, value );
-                log_debug( "variable=%s value=%s", variable, value );
                 if( value[0] != '\0' )
                 {
+                    log_debug( "variable=%s value=%s", variable, value );
                     if( strcmp( variable, "Inverter" ) == 0 )
                     {
                         if ( found_inverter )
