@@ -174,17 +174,17 @@ a[href] {
 <h1>Step-by-step guide to installing sma-bluetooth on Ubuntu Linux</h1>
 
 <p>This guide will lead you through the process of installing and configuring the
-   <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">sma-bluetooth</a> tool that enables you to pull
+   <a href="https://github.com/sma-bluetooth/sma-bluetooth" target="_blank">sma-bluetooth</a> tool that enables you to pull
    data from your SMA Sunnyboy inverter via bluetooth in Linux and upload it to <a href="http://pvoutput.org" target="_blank">PVOutput</a>.
-   It specifically uses a version of the <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">sma-bluetooth</a>
-   tool that has been modified by <a href="http://code.google.com/p/sma-bluetooth/source/clones" target="_blank">Tony Brown</a> and then myself
-   (<a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">Rob Hills</a>), to store its data into a simple SQLite3 database.
+   It specifically uses a version of the <a href="https://github.com/sma-bluetooth/sma-bluetooth" target="_blank">sma-bluetooth</a>
+   tool that was modified by <a href="https://code.google.com/r/bonybrown-dbabstraction/" target="_blank">Tony Brown</a> and then myself
+   (<a href="https://github.com/rob-hills/rcphills-sma-bluetooth-dbabstraction" target="_blank">Rob Hills</a>), to store its data into a simple SQLite3 database.
    While this version of the smatool program is also capable of storing your Inverter logs in a <a href="http://www.mysql.com/" target="_blank">MySQL</a>
    database, this guide does not cover the use of MySQL.</p>
 <p>The following steps require you to complete some relatively geeky tasks like downloading source code, compiling programs and creating databases.
    Nevertheless, the aim of this guide is to help the non-programmer to navigate his/her way through these tasks.  If the guide doesn't do this for you
    and you have some constructive comments to improve it, please contact me (Rob Hills) via the
-   <a href="http://code.google.com/r/rcphills-sma-bluetooth-dbabstraction/" target="_blank">source code page</a>.</p>
+   <a href="https://github.com/rob-hills/rcphills-sma-bluetooth-dbabstraction" target="_blank">source code page</a>.</p>
 
 <p>The following steps assume that:
 	<ol>
@@ -208,7 +208,7 @@ a[href] {
     <p>At the terminal prompt, type (or copy the following line and paste it
     into your terminal):</p>
     <p><code>sudo apt-get install sqlite3 libsqlite3-dev libbluetooth-dev
-    libcurl4-openssl-dev mercurial make</code> </p>
+    libcurl4-openssl-dev git make</code> </p>
     <p>You will probably be prompted for a password - use your usual Ubuntu
     password (or nothing if you don't have to log in to Ubuntu). Following
     this, you will see a series of programs downloaded and installed.</p>
@@ -225,7 +225,7 @@ a[href] {
 	  <p>You will be downloading the program code for a version of the sma-bluetooth program that has been modified to store all the downloaded data in a simple
 		  (SQLite3) database.  You don't need to know or understand this, but it can be useful for analysing the data etc.
 		  To do this, type (copy/past) the following into your terminal window:</p>
-	  <code>hg clone https://rcp.hills@code.google.com/r/rcphills-sma-bluetooth-dbabstraction/ ./</code>
+	  <code>git clone https://github.com/rob-hills/rcphills-sma-bluetooth-dbabstraction.git ./</code>
   </li>
   <li><h2>Build the Program</h2>
 	  <p>In the previous step, you downloaded the <em>source code</em> for the program, but the computer can't run this.  To convert it to something the computer
