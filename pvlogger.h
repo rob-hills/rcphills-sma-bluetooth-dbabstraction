@@ -20,7 +20,8 @@
 #define PVLOGGER_HH
 
 #define _XOPEN_SOURCE
-#define _BSD_SOURCE
+/* #define _BSD_SOURCE */
+#define _DEFAULT_SOURCE
 #include <time.h>
 
 char * sunset( float latitude, float longitude );
