@@ -1,9 +1,7 @@
-# use glob syntax.
-syntax: glob
-
 *~
 test.db
 smatool.conf
+smatool.cron
 *.o
 smatool
 temp-log.txt
