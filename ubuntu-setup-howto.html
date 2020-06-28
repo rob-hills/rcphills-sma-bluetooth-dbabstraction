@@ -189,7 +189,7 @@ a[href] {
 <p>The following steps assume that:
 	<ol>
 		<li>You have created a <a href="http://pvoutput.org/account.jsp" target="_blank">PVOutput Account</a>;</li>
-		<li>you are running Ubuntu Linux; and</li>
+		<li>you are running a reasonably up-to-date Ubuntu Linux (these instructions have been used on much earlier versions but were most recently tested on Ubuntu 20.04LTS); and</li>
 		<li>you have opened a Terminal window.</li>
 	</ol>
 </p>
@@ -254,9 +254,9 @@ a[href] {
   </li>
   <li><h2>Create your configuration file</h2></li>
   <p>The <em>smatool</em> program reads a special file named &quot;smatool.conf&quot; for its configuration information.  You have already downloaded a template
-     of this file when you <em>downloaded the program source</em> a few steps back.  This template is named &quot;smatool.conf.new&quot; and you&apos;ll now
+     of this file when you <em>downloaded the program source</em> a few steps back.  This template is named &quot;smatool.conf.template&quot; and you&apos;ll now
      make a copy of that by typing (copy/paste) the following into your terminal window:</p>
-  <code>cp smatool.conf.new smatool.conf</code>
+  <code>cp smatool.conf.template smatool.conf</code>
   <li><h2>Customise your configuration file</h2></li>
   <p>There are several lines in your configuration file that will need to be checked and possibly changed.  To do this, open your configuration file with
      the default text editor <em>gedit</em>:</p>
@@ -337,13 +337,14 @@ endtime="$(date +'%Y-%m-%d %T')"<br />
 </code>
   <p>The program will log its progress (and any errors) to a file named "smatool.log" in the /var/log directory</p>
   <li><h2>Automate your uploads</h2></li>
-  <p>You can use the Linux &quot;cron&quot; program to automate your data logging.  I have mine set up to post data every half hour so as not to keep harassing the Inverter.  I have included an example cron file with this html document, but you need to edit it before you can use it. Type (copy/paste) the following into your terminal window:</p>
+  <p>You can use the Linux &quot;cron&quot; program to automate your data logging.  I have mine set up to post data every half hour so as not to keep harassing the Inverter.  I have included a template cron file with this html document, but you need to copy and edit it before you can use it just like you did with smatool.conf above. Type (copy/paste) the following into your terminal window:</p>
+<code>cp smatool.cron.template smatool.cron</code>
 <code>gedit ./smatool.cron &amp;</code>
   <p>When the file opens in your editor, look in the last line only for the text &quot;your-user-name&quot; which appears twice in that line.  Now replace it with your actual Ubuntu login name.</p>
-  <p>Now you can copy this file to the folder it needs to be in to do its job. Type (copy/paste) the following into your terminal window 
+  <p>Now you can copy this file to the folder it needs to be in to do its job. Type (copy/paste) the following into your terminal window
      (when prompted for a password, enter your usual login password):</p>
 <code>
-sudo cp ./smatool.cron /etc/cron.d/smatool<br />
+sudo cp .smatool.cron /etc/cron.d/smatool<br />
 sudo chmod +x /etc/cron.d/smatool<br />
 sudo chown root:root /etc/cron.d/smatool
 </code>
