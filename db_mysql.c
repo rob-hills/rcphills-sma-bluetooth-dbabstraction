@@ -85,8 +85,8 @@ int db_install_tables( void )
   }
   const char *query_almanac = "CREATE TABLE Almanac( \
     Date DATE PRIMARY KEY, \
-    Sunrise DATETIME, \
-    Sunset DATETIME, \
+    Sunrise TIME, \
+    Sunset TIME, \
     Changetime DATETIME );";
 
   int result = mysql_query( dbHandle, query_almanac);
@@ -432,6 +432,11 @@ row_handle* db_get_unposted_data( struct tm *from_datetime )
 }
 
 char* db_row_string_data( row_handle *row, int column_id )
+{
+  return ((struct mysql_row_handle*) row)->row[column_id];
+}
+
+long db_row_int_data( row_handle *row, int column_id )
 {
   return ((struct mysql_row_handle*) row)->row[column_id];
 }
