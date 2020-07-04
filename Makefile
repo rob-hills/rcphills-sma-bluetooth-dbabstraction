@@ -19,7 +19,7 @@ MYSQL_OBJ = db_mysql.o
 HEADER=pvlogger.h logging.h
 
 $(MAIN) : $(MYSQL_OBJ) $(MAIN_OBJS)
-	$(CC) $(LIBS) $(MYSQL_LIB) $(CFLAGS) -o $(MAIN) $(MAIN_OBJS) $(MYSQL_OBJ)
+	$(CC) $(CFLAGS) -o $(MAIN) $(MAIN_OBJS) $(MYSQL_OBJ) $(LIBS) $(MYSQL_LIB)
 
 .c.o :
 	$(CC) $(CFLAGS) -c $<  -o $@
