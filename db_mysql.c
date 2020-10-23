@@ -243,13 +243,12 @@ struct tm db_get_last_recorded_interval_datetime(struct tm *date)
     fprintf(stderr, "db_get_last_recorded_interval_datetime error\n" );
     return last_time;
   }
-
-  const char *stmtText = "SELECT MAX(DateTime) FROM DayData WHERE DateTime >= '%s' AND DateTime < ADDDATE('%s',1)";
+	
+  const char *stmtText = "SELECT MAX(DateTime) FROM DayData";
   char query[200];
-  char chardate[25];
-  strftime(chardate,25,"%Y-%m-%d", date);
 
-  sprintf( query, stmtText, chardate, chardate );
+  sprintf( query, stmtText);
+
 #ifdef DEBUG
   puts(query);
 #endif
