@@ -1387,6 +1387,7 @@ int main(int argc, char **argv)
     get_timezone_in_seconds( tzhex );
     // Location based information to avoid quering Inverter in the dark
     if((location==1)&&(mysql==1)) {
+        curtime = time(NULL);
         loctime = localtime( &curtime );
         if( !db_fetch_almanac( loctime , sunrise_time, sunset_time ) ) {
             sprintf( sunrise_time, "%s", sunrise(conf.latitude_f,conf.longitude_f ));
